@@ -4,9 +4,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-public class DateManager {
+public class Dates {
 
-	public static final String DATE_FORMAT = "yyyy-MM-dd"; // HTML fromat
+	public static final String DATE_FORMAT = "yyyy-MM-dd"; // HTML format
 	
 	public static String toString (Date date) {
 		if (date == null) {
@@ -60,7 +60,7 @@ public class DateManager {
 			return false;
 		}
 		Date now = new Date ();
-		Date birth = StringManager.parseDate(birthdate);
+		Date birth = Strings.parseDate(birthdate);
 		long age = now.getTime() -birth.getTime();
 		return (age / (1000 * 60 * 60 * 24 * 365.25)) < years;
 	}

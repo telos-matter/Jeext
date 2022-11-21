@@ -1,4 +1,4 @@
-package controllers.controller.annotations;
+package controllers.controller.core.annotations;
 
 import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -8,8 +8,6 @@ import java.lang.annotation.Target;
 
 @Retention(RUNTIME)
 @Target(PARAMETER)
-public @interface Parammmm {
-	
-	boolean required () default true;
-	
+public @interface Request {
+
 }

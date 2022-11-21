@@ -1,7 +1,5 @@
 package controllers.controller.exceptions;
 
-import java.lang.reflect.Method;
-
 import controllers.controller.core.validators.Validator;
 
 public class InvalidParam extends RuntimeException {

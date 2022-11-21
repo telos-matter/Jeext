@@ -4,7 +4,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class StringManager {
+public class Strings {
 
 	public static boolean equals (String s1, String s2) {
 		return (s1 == null || s2 == null) ? false : s1.equals(s2);
@@ -47,7 +47,6 @@ public class StringManager {
 		try {
 			return Integer.parseInt(s);
 		} catch (NumberFormatException exception) {
-//			System.out.println("Unable to parseInt: " +s); // DEBUG
 			return null;
 		}
 	}
@@ -62,7 +61,6 @@ public class StringManager {
 		} else if (s.equals("false") || s.equals("0") || s.equals("no") || s.equals("n")) {
 			return false;
 		} else {
-//			System.out.println("Unable to parseBool: " +s); // DEBUG
 			return null;
 		}
 	}
@@ -74,7 +72,6 @@ public class StringManager {
 		try {
 			return Float.parseFloat(s);
 		} catch (NumberFormatException exception) {
-//			System.out.println("Unable to parseFloat: " +s); // DEBUG
 			return null;
 		}
 	}
@@ -86,7 +83,6 @@ public class StringManager {
 		try {
 			return Double.parseDouble(s);
 		} catch (NumberFormatException exception) {
-//			System.out.println("Unable to parseFloat: " +s); // DEBUG
 			return null;
 		}
 	}
@@ -98,7 +94,6 @@ public class StringManager {
 		try {
 			return Long.parseLong(s);
 		} catch (NumberFormatException exception) {
-//			System.out.println("Unable to parseFloat: " +s); // DEBUG
 			return null;
 		}
 	}
@@ -108,9 +103,8 @@ public class StringManager {
 			return null;
 		}
 		try {
-			return new SimpleDateFormat(DateManager.DATE_FORMAT).parse(s);
+			return new SimpleDateFormat(Dates.DATE_FORMAT).parse(s);
 		} catch (ParseException e) {
-//			System.out.println("Unable to parseDate: " +s); // DEBUG
 			return null;
 		}
 	}

@@ -11,8 +11,8 @@ import java.util.regex.Pattern;
 import org.apache.xmlbeans.impl.xb.xsdschema.impl.PatternDocumentImpl;
 
 import controllers.controller.Controller;
-import controllers.controller.annotations.Parammmm;
-import controllers.controller.annotations.WebController;
+import controllers.controller.core.annotations.Query;
+import controllers.controller.core.annotations.WebController;
 import controllers.controller.exceptions.InvalidMappingMethod;
 import controllers.controller.exceptions.InvalidPath;
 import controllers.controller.exceptions.PathDuplicate;
@@ -65,9 +65,7 @@ public class Mapping {
 		
 		for (int i = 0; i < params.length -2; i++) {
 			
-			System.out.println(params[i].getName());
-			
-			if (! params[i].isAnnotationPresent(Parammmm.class)) {
+			if (! params[i].isAnnotationPresent(Query.class)) {
 				//throw new UnspecifiedParam(controller, method, params[i]); // TODO:  idk todo or del
 			}
 		}

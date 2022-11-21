@@ -1,7 +1,7 @@
 package controllers.pack_a;
 
-import controllers.controller.annotations.GetMapping;
-import controllers.controller.annotations.WebController;
+import controllers.controller.core.annotations.GetMapping;
+import controllers.controller.core.annotations.WebController;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
