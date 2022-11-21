@@ -1,4 +1,4 @@
-package util;
+package controllers.controller.core;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,13 +8,15 @@ import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
 
+import controllers.controller.exceptions.UnsupportedType;
 import dao.Manager;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
+import util.StringManager;
 
-public class ServletManager {
+public class ParamManager {
 
 //	public static <T> List <T> assertEntities (String id_parameter, Class <T> type, HttpServletRequest request, HttpServletResponse response) throws IOException {
 //		List <Integer> ids = assertParameters (id_parameter, Integer.class, request, response);
@@ -168,6 +170,7 @@ public class ServletManager {
 //		}
 //	}
 //	
+	
 //	public static <T> T getParameter (String name, Class <T> type, HttpServletRequest request) {
 //		String parameter = request.getParameter(name);
 //		if (parameter == null) {
@@ -185,6 +188,26 @@ public class ServletManager {
 //			return null;
 //		}
 //	}
+	
+	public static <T> T getParameter (String name, Class <T> type, HttpServletRequest request) {
+		String parameter = request.getParameter(name);
+		if (parameter == null) {
+			return null;
+		} else if (String.class.equals(type)) {
+			return (T) parameter;
+		} else if (Long.class.equals(type)) {
+			return (T) StringManager.parseLong(parameter);
+		} else if (Boolean.class.equals(type)) {
+			return (T) StringManager.parseBool(parameter);
+		} else if (Double.class.equals(type)) {
+			return (T) StringManager.parseDouble(parameter);
+		} else if (Date.class.equals(type)) {
+			return (T) StringManager.parseDate(parameter);
+		} else {
+			throw new UnsupportedType(type);
+		}
+	}
+	
 //	
 //	public static <T> void setCreatedSucces (String name, Class <T> clazz, HttpServletRequest request, HttpServletResponse response) throws IOException {
 //		if (clazz == null) {
@@ -245,4 +268,5 @@ public class ServletManager {
 //		request.setAttribute("message", message);
 //		response.sendError(code);
 //	}
+
 }

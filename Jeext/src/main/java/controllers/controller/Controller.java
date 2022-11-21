@@ -9,11 +9,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
@@ -21,17 +24,18 @@ import controllers.Display;
 import controllers.controller.annotations.GetMapping;
 import controllers.controller.annotations.PostMapping;
 import controllers.controller.annotations.WebController;
+import controllers.controller.core.Mapping;
 import controllers.controller.exceptions.InvalidMappingMethod;
 import controllers.controller.exceptions.InvalidPath;
 import controllers.controller.exceptions.PathDuplicate;
 import controllers.controller.exceptions.UnsupportedType;
-import controllers.controller.path.Path;
 import controllers.pack_a.ClassA;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import util.StringManager;
 
 @WebServlet("/")
 public final class Controller extends HttpServlet {
@@ -39,15 +43,26 @@ public final class Controller extends HttpServlet {
 	
 	private static Set <Class <?>> controllers;
 	
-	private static Map <Path, Method> getMappings;
-	private static Map <Path, Method> postMappings;
+	private static List <Mapping> getMappings;
+	private static List <Mapping> postMappings;
 	
-	public static void main (String [] a) {
+	public static void main (String [] args) {
+//		Pattern pathVariable_regex = Pattern.compile("(?<=\\{)\\w+(?=\\})");
+
+//		String pattern =  "/foo/\\w*\\-lol/view";  //   "/foo/*-lol/view";
+//		String s = "/foo/ajsdkfh85345-843-lol/view";
+//		
+//		System.out.println(Pattern.matches(pattern, s));
 		
-		getMappings.forEach((path, method) -> {System.out.println(path);});
-
+		
+//		String pattern =  "(?<=\\{)\\w+(?=\\})";
+//		String s = "/foo/{l}-lol/view";
+//		
+//		System.out.println(Pattern.matches(pattern, s));
+		
+		new Controller().init();
 	}
-
+	
     private void loadControllers () {
 //		System.out.println(getServletContext().getRealPath(parent_name));
 
@@ -110,144 +125,222 @@ public final class Controller extends HttpServlet {
         	}
         } catch (ClassNotFoundException e) {}
     }
-	
+
     
-//   	private static void loadGetMappings () {
-//   		getMappings = new HashMap <> ();
-//   		
-//   		for (Class <?> controller : controllers) {
-//   			for (Method method : controller.getDeclaredMethods()) {
-//   				if (method.isAnnotationPresent(GetMapping.class)) {
-//   					String path = controller.getAnnotation(WebController.class).value() +method.getAnnotation(GetMapping.class).value();
-//   					
-//   					if (validateMapping(controller, method, path, getMappings)) {
-//   						//getMappings.put(path, method);
-//   					}
-//   					
-//   				}
-//   			}
-//   		}
-//   	}
-//   	
-//   	private static void loadPostMappings () {
-//   		postMappings = new HashMap <> ();
-//   		
-//   		for (Class <?> controller : controllers) {
-//   			for (Method method : controller.getDeclaredMethods()) {
-//   				if (method.isAnnotationPresent(PostMapping.class)) {
-//   					String path = controller.getAnnotation(WebController.class).value() +method.getAnnotation(PostMapping.class).value();
-//   					
-//   					if (validateMapping(controller, method, path, postMappings)) {
-//   						//postMappings.put(path, method);
-//   					}
-//   					
-//   				}
-//   			}
-//   		}
-//   	}
-   	
-   	private static void loadMappings (Class <? extends Annotation> type, Map <Path, Method> map) {
+   	private static void loadMappings (Class <? extends Annotation> type, List <Mapping> mappings_list) {
    		for (Class <?> controller : controllers) {
    			for (Method method : controller.getDeclaredMethods()) {
-   				
-//   				System.out.println(method.getName());
-//   				
-//   				for (Parameter param : method.getParameters()) {
-//   					System.out.println(param.getName() +"->" +param.getType().getName());
-//   				}
-//   				
-//   				for (Class <?> clazz : method.getParameterTypes()) {
-//   					System.out.println(clazz.getName());
-//   				}
-   				
-   				
    				if (method.isAnnotationPresent(type)) {
    					
-   					String path;
+   					String method_path;
    					
    					if (type == GetMapping.class) {
-   						path = controller.getAnnotation(WebController.class).value() +method.getAnnotation(GetMapping.class).value();
+   						method_path = method.getAnnotation(GetMapping.class).value();
    					} else if (type == PostMapping.class) {
-   						path = controller.getAnnotation(WebController.class).value() +method.getAnnotation(PostMapping.class).value();
+   						method_path = method.getAnnotation(PostMapping.class).value();
    					} else {
    						throw new UnsupportedType(type);
    					}
    					
-   					if (validateMapping(controller, method, path, map)) {
-   						map.put(new Path(path), method);
-   					}
-   					
+   					mappings_list.add(Mapping.validateMapping(controller, method, method_path, mappings_list));
    				}
    			}
    		}
    	}
-   	
-   	private static boolean validateMapping (Class <?> controller, Method method, String path, Map <Path, Method> map) {
-   		if ((! Modifier.isStatic(method.getModifiers())) || (! Modifier.isPublic(method.getModifiers()))) {
-   			throw new InvalidMappingMethod(controller, method);
-   		}
-   		{
-   			Parameter [] params = method.getParameters();
-   			
-   			if ((params.length < 2) ||
-   					(params[0].getType() != HttpServletRequest.class) ||
-   					(params[1].getType() != HttpServletResponse.class)) {
-   				throw new InvalidMappingMethod(controller, method);
-   			}
-   		}
-   		if (! path.startsWith("/")) {
-			throw new InvalidPath(controller, method, path);
-		}
-		if (map.containsKey(new Path(path))) {
-			throw new PathDuplicate(controller, method, path);
-		}
-		
-		return true;
-   	}
+//   	
+//	public static <T> List <T> assertEntities (String id_parameter, Class <T> type, HttpServletRequest request, HttpServletResponse response) throws IOException {
+//	List <Integer> ids = assertParameters (id_parameter, Integer.class, request, response);
+//	if (ids == null) {
+//		return null;
+//	} else {
+//		List <T> entities = new ArrayList <> ();
+//		for (Integer id : ids) {
+//			T entity = Manager.find(type, id);
+//			if (entity == null) {
+//				setError(404, "The requested " +type.getSimpleName() +" doesn't exist.", request, response);
+//				return null;
+//			}
+//			entities.add(entity);
+//		}
+//		return entities;
+//	}
+//}
+//
+//public static <T> List <T> assertParameters (String name, Class <T> type, HttpServletRequest request, HttpServletResponse response) throws IOException {
+//	String [] request_parameters = request.getParameterValues(name);
+//	if (request_parameters == null) {
+//		setError(400, "The HTTP request is incomplete.", request, response);
+//		return null;
+//	} else if (Integer.class.equals(type)) {
+//		List <T> parameters = new ArrayList <T> ();
+//		Integer parameter = null;
+//		for (String request_parameter : request_parameters) {
+//			parameter = StringManager.parseInt(request_parameter);
+//			if (parameter == null) {
+//				setError(400, "The HTTP request is corrupted.", request, response);
+//				return null;
+//			}
+//			parameters.add((T) parameter);
+//		}
+//		return parameters;
+//	} else if (Boolean.class.equals(type)) {
+//		List <T> parameters = new ArrayList <T> ();
+//		Boolean parameter = null;
+//		for (String request_parameter : request_parameters) {
+//			parameter = StringManager.parseBool(request_parameter);
+//			if (parameter == null) {
+//				setError(400, "The HTTP request is corrupted.", request, response);
+//				return null;
+//			}
+//			parameters.add((T) parameter);
+//		}
+//		return parameters;
+//	} else if (Float.class.equals(type)) {
+//		List <T> parameters = new ArrayList <T> ();
+//		Float parameter = null;
+//		for (String request_parameter : request_parameters) {
+//			parameter = StringManager.parseFloat(request_parameter);
+//			if (parameter == null) {
+//				setError(400, "The HTTP request is corrupted.", request, response);
+//				return null;
+//			}
+//			parameters.add((T) parameter);
+//		}
+//		return parameters;
+//	} else if (Date.class.equals(type)) {
+//		List <T> parameters = new ArrayList <T> ();
+//		Date parameter = null;
+//		for (String request_parameter : request_parameters) {
+//			parameter = StringManager.parseDate(request_parameter);
+//			if (parameter == null) {
+//				setError(400, "The HTTP request is corrupted.", request, response);
+//				return null;
+//			}
+//			parameters.add((T) parameter);
+//		}
+//		return parameters;
+//	} else {
+//		System.out.println("An unsupported type (" +type +") parameter in assertParameters.");
+//		setError(500, "An unsupported type (" +type +") parameter in assertParameters.", request, response);
+//		return null;
+//	}
+//}
+//
+//public static <T> T assertEntity (Class <T> type, HttpServletRequest request, HttpServletResponse response) throws IOException {
+//	return assertEntity("id", type, request, response);
+//}
+//
+//public static <T> T assertEntity (String id_parameter, Class <T> type, HttpServletRequest request, HttpServletResponse response) throws IOException {
+//	Integer id = assertParameter (id_parameter, Integer.class, request, response);
+//	if (id == null) {
+//		return null;
+//	} else {
+//		T entity = Manager.find(type, id);
+//		if (entity == null) {
+//			setError(404, "The requested " +type.getSimpleName() +" doesn't exist.", request, response);
+//		}
+//		return entity;
+//	}
+//}
+//
+//public static <T> T assertParameter (String name, Class <T> type, HttpServletRequest request, HttpServletResponse response) throws IOException {
+//	String request_parameter = request.getParameter(name);
+//	if (request_parameter == null) {
+//		setError(400, "The HTTP request is incomplete.", request, response);
+//		return null;
+//	} else if (Integer.class.equals(type)) {
+//		Integer parameter = StringManager.parseInt(request_parameter);
+//		if (parameter == null) {
+//			setError(400, "The HTTP request is corrupted.", request, response);
+//			return null;
+//		} else {
+//			return (T) parameter;
+//		}
+//	} else if (Boolean.class.equals(type)) {
+//		Boolean parameter = StringManager.parseBool(request_parameter);
+//		if (parameter == null) {
+//			setError(400, "The HTTP request is corrupted.", request, response);
+//			return null;
+//		} else {
+//			return (T) parameter;
+//		}
+//	} else if (Float.class.equals(type)) {
+//		Float parameter = StringManager.parseFloat(request_parameter);
+//		if (parameter == null) {
+//			setError(400, "The HTTP request is corrupted.", request, response);
+//			return null;
+//		} else {
+//			return (T) parameter;
+//		}
+//	} else if (Date.class.equals(type)) {
+//		Date parameter = StringManager.parseDate(request_parameter);
+//		if (parameter == null) {
+//			setError(400, "The HTTP request is corrupted.", request, response);
+//			return null;
+//		} else {
+//			return (T) parameter;
+//		}
+//	} else {
+//		System.out.println("An unsupported type (" +type +") parameter in assertParameter.");
+//		setError(500, "An unsupported type (" +type +") parameter in assertParameter.", request, response);
+//		return null;
+//	}
+//}
+//
+//public static <T> T getEntity (Class <T> type, HttpServletRequest request) {
+//	return getEntity("id", type, request);
+//}
+//
+//	public static <T> T getEntity (String id_parameter, Class <T> type, HttpServletRequest request) {
+//		Integer id = getParameter (id_parameter, Integer.class, request);
+//		if (id == null) {
+//			return null;
+//		} else {
+//			return Manager.find(type, id);
+//		}
+//	}
 
     
 	@Override
 	public void init () {
 		loadControllers();
 
-		getMappings = new HashMap <> ();
-		postMappings = new HashMap <> ();
+		getMappings = new LinkedList <> ();
+		postMappings = new LinkedList <> ();
 		
 		loadMappings(GetMapping.class, getMappings);
 		loadMappings(PostMapping.class, postMappings);
-		
-//		loadGetMappings();
-//		loadPostMappings();
 	}
 	
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		final String URN = request.getRequestURI().replaceFirst(request.getContextPath(), "");
+		final String url = request.getRequestURI().replaceFirst(request.getContextPath(), "");
 
-		System.out.println("Calling: " +URN);
-		
-		try {
-			Method method = getMappings.get(new Path(URN));
-			if (method != null) {
-				
-				method.invoke(null, "hihi");
-			}
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
-		}
-		
-		
-		
+		invokeMapping(url, getMappings, request, response);
 	}
 
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		final String url = request.getRequestURI().replaceFirst(request.getContextPath(), "");
+
+		invokeMapping(url, postMappings, request, response);
+	}
 	
-	
+	private static void invokeMapping (String url, List <Mapping> mappings, HttpServletRequest request, HttpServletResponse response) {
+		Mapping mapping = Mapping.getMapping(url, mappings);
+		
+		if (mapping != null) {
+			
+			mapping.invoke(request, response);
+			
+		} else {
+			try {
+				response.sendError(HttpServletResponse.SC_NOT_FOUND);
+			} catch (IOException e) {
+				System.out.println("? huh");
+				e.printStackTrace();
+			}
+		}
 	}
 
 
