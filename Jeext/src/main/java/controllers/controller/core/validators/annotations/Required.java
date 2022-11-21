@@ -10,6 +10,6 @@ import java.lang.annotation.Target;
 @Target(PARAMETER)
 public @interface Required {
 
-	boolean value() default true;
+	boolean value();
 	
 }

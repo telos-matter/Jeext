@@ -1,24 +1,12 @@
 package controllers.controller;
 
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 
 import controllers.Display;
@@ -26,9 +14,7 @@ import controllers.controller.core.Mapping;
 import controllers.controller.core.annotations.GetMapping;
 import controllers.controller.core.annotations.PostMapping;
 import controllers.controller.core.annotations.WebController;
-import controllers.controller.exceptions.InvalidMappingMethod;
 import controllers.controller.exceptions.InvalidPath;
-import controllers.controller.exceptions.PathDuplicate;
 import controllers.controller.exceptions.UnsupportedType;
 import controllers.pack_a.ClassA;
 import jakarta.servlet.ServletException;
@@ -36,7 +22,6 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import util.Strings;
 
 @WebServlet("/")
 public final class Controller extends HttpServlet {
@@ -44,8 +29,8 @@ public final class Controller extends HttpServlet {
 	
 	private static Set <Class <?>> controllers;
 	
-	private static List <Mapping> getMappings;
-	private static List <Mapping> postMappings;
+	private static Map <String, Mapping> getMappings;
+	private static Map <String, Mapping> postMappings;
 	
     private void loadControllers () {
     	
@@ -60,22 +45,26 @@ public final class Controller extends HttpServlet {
     	controllers.add(ClassA.class);
     }
     
-   	private static void loadMappings (Class <? extends Annotation> type, List <Mapping> mappings_list) {
+   	private static void loadMappings (Class <? extends Annotation> type, Map <String, Mapping> map) {
    		for (Class <?> controller : controllers) {
    			for (Method method : controller.getDeclaredMethods()) {
    				if (method.isAnnotationPresent(type)) {
    					
-   					String method_path;
+   					String path;
    					
    					if (type == GetMapping.class) {
-   						method_path = method.getAnnotation(GetMapping.class).value();
+   						path = controller.getAnnotation(WebController.class).value() +method.getAnnotation(GetMapping.class).value();
    					} else if (type == PostMapping.class) {
-   						method_path = method.getAnnotation(PostMapping.class).value();
+   						path = controller.getAnnotation(WebController.class).value() +method.getAnnotation(PostMapping.class).value();
    					} else {
-   						throw new UnsupportedType(type, false);
+   						throw new UnsupportedType(type);
    					}
    					
-   					mappings_list.add(Mapping.validateMapping(controller, method, method_path, mappings_list));
+   					if (! path.startsWith("/")) {
+   						throw new InvalidPath(controller, method, path);
+   					}
+   					
+   					map.put(path, new Mapping(controller, method));
    				}
    			}
    		}
@@ -85,8 +74,8 @@ public final class Controller extends HttpServlet {
 	public void init () {
 		loadControllers();
 
-		getMappings = new LinkedList <> ();
-		postMappings = new LinkedList <> ();
+		getMappings = new HashMap <> ();
+		postMappings = new HashMap <> ();
 		
 		loadMappings(GetMapping.class, getMappings);
 		loadMappings(PostMapping.class, postMappings);
@@ -94,20 +83,20 @@ public final class Controller extends HttpServlet {
 	
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		final String url = request.getRequestURI().replaceFirst(request.getContextPath(), "");
+		final String path = request.getRequestURI().replaceFirst(request.getContextPath(), "");
 
-		invokeMapping(url, getMappings, request, response);
+		invokeMapping(path, getMappings, request, response);
 	}
 
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		final String url = request.getRequestURI().replaceFirst(request.getContextPath(), "");
+		final String path = request.getRequestURI().replaceFirst(request.getContextPath(), "");
 
-		invokeMapping(url, postMappings, request, response);
+		invokeMapping(path, postMappings, request, response);
 	}
 	
-	private static void invokeMapping (String url, List <Mapping> mappings, HttpServletRequest request, HttpServletResponse response) {
-		Mapping mapping = Mapping.getMapping(url, mappings);
+	private static void invokeMapping (String path, Map <String, Mapping> map, HttpServletRequest request, HttpServletResponse response) {
+		Mapping mapping = map.get(path);
 		
 		if (mapping != null) {
 			
