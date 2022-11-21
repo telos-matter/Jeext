@@ -7,6 +7,9 @@ import java.util.Date;
 import java.util.List;
 
 import controllers.controller.core.annotations.Name;
+import controllers.controller.core.consumers.Consumer;
+import controllers.controller.core.consumers.FlagConsumer;
+import controllers.controller.core.consumers.annotations.Flag;
 import controllers.controller.core.validators.*;
 import controllers.controller.core.validators.annotations.*;
 import controllers.controller.exceptions.InvalidMappingMethodParam;
@@ -15,17 +18,19 @@ import controllers.controller.exceptions.UnsupportedType;
 import dao.Manager;
 import jakarta.servlet.http.HttpServletRequest;
 import models.Model;
-import util.Strings;
+import util.Parser;
 
 // NOTICE: Other annotations that don't apply are ignored
 // NOTICE: only class types no primitives
+// NOTICE: consumers should be commutative
 
 public class Param {
 
 	private Class <?> type;
-	private boolean primitive; // Anything other than a Model is considered primitive
+	private boolean primitive; // NOTICE Anything other than a Model is considered primitive
 	private String name;
 	private Validator [] validators;
+	private Consumer [] consumers;
 	
 	public Param(Class <?> controller, Method method, Parameter parameter) {
 		this.type = parameter.getType();
@@ -37,6 +42,7 @@ public class Param {
 		this.primitive = !Model.class.isAssignableFrom(type);
 		
 		this.name = (parameter.isAnnotationPresent(Name.class))? parameter.getAnnotation(Name.class).value() : parameter.getName();
+		
 		
 		List <Validator> _validators = new ArrayList <> ();
 		
@@ -77,6 +83,9 @@ public class Param {
 		} else if (Boolean.class.equals(type)) {
 			
 			
+		} else if (Character.class.equals(type)) {
+			
+			
 		} else {
 			throw new InvalidMappingMethodParam(controller, method, parameter, "Unsuported type: " +type);
 		}
@@ -85,6 +94,35 @@ public class Param {
 		for (int i = 0; i < validators.length; i++) {
 			this.validators[i] = _validators.get(i);
 		}
+		
+		
+		List <Consumer> _consumers = new ArrayList <> ();
+		
+		if (String.class.equals(type)) {
+			
+		} else if (Number.class.isAssignableFrom(type)) {
+			
+		} else if (Model.class.isAssignableFrom(type)) {
+			
+			
+		} else if (Date.class.equals(type)) {
+			
+			
+		} else if (Boolean.class.equals(type)) {
+			
+			if (parameter.isAnnotationPresent(Flag.class)) {
+				_consumers.add(FlagConsumer.GET());
+			}
+			
+		} else if (Character.class.equals(type)) {
+			
+		}
+
+		this.consumers = new Consumer [_consumers.size()];
+		for (int i = 0; i < consumers.length; i++) {
+			this.consumers[i] = _consumers.get(i);
+		}
+		
 	}
 	
 	public Object getParam (HttpServletRequest request) {
@@ -98,7 +136,7 @@ public class Param {
 		
 		validate(value);
 		
-		return value;
+		return consume(value);
 	}
 	
 	private void validate (Object value) {
@@ -107,6 +145,14 @@ public class Param {
 				throw new InvalidParam(this, validator);
 			}
 		}
+	}
+	
+	private Object consume (Object value) {
+		for (Consumer consumer : consumers) {
+			value = consumer.consume(value);
+		}
+		
+		return value;
 	}
 
 	public static Object getEntity (String name, Class <?> type, HttpServletRequest request) {
@@ -124,22 +170,31 @@ public class Param {
 			return parameter;
 			
 		} else if (Boolean.class.equals(type)) {
-			return Strings.parseBool(parameter);
+			return Parser.parseBool(parameter);
 			
 		} else if (Integer.class.equals(type)) {
-			return Strings.parseInt(parameter);
+			return Parser.parseInt(parameter);
 			
 		} else if (Float.class.equals(type)) {
-			return Strings.parseFloat(parameter);
+			return Parser.parseFloat(parameter);
 			
 		} else if (Double.class.equals(type)) {
-			return Strings.parseDouble(parameter);
+			return Parser.parseDouble(parameter);
 			
 		} else if (Long.class.equals(type)) {
-			return Strings.parseLong(parameter);
+			return Parser.parseLong(parameter);
 			
 		} else if (Date.class.equals(type)) {
-			return Strings.parseDate(parameter);
+			return Parser.parseDate(parameter);
+			
+		} else if (Character.class.equals(type)) {
+			return Parser.parseChar(parameter);
+			
+		} else if (Short.class.equals(type)) {
+			return Parser.parseShort(parameter);
+			
+		} else if (Byte.class.equals(type)) {
+			return Parser.parseByte(parameter);
 			
 		} else {
 			throw new UnsupportedType(type);

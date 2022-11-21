@@ -2,6 +2,8 @@ package controllers.controller.core.validators;
 
 @FunctionalInterface
 public interface Validator {
+	
+	// NOTICE they tolerate null
 
 	public boolean validate (Object object);
 	

@@ -26,7 +26,7 @@ public class MaxStrictValidator implements Validator {
 
 	@Override
 	public boolean validate(Object object) {
-		return ((double) object) < value;
+		return (object == null)? true : ((Number) object).doubleValue() < value;
 	}
 	
 }

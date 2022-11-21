@@ -55,19 +55,19 @@ public class Dates {
 		return year >= getYearFrom(start_date) && year <= getYearFrom(finish_date);
 	}
 	
-	public static boolean isAgeInferior (int years, String birthdate) {
-		if (birthdate == null) {
-			return false;
-		}
-		Date now = new Date ();
-		Date birth = Strings.parseDate(birthdate);
-		long age = now.getTime() -birth.getTime();
-		return (age / (1000 * 60 * 60 * 24 * 365.25)) < years;
-	}
+//	public static boolean isAgeInferior (int years, String birthdate) {
+//		if (birthdate == null) {
+//			return false;
+//		}
+//		Date now = new Date ();
+//		//Date birth = Strings.parseDate(birthdate);
+//		long age = now.getTime() -birth.getTime();
+//		return (age / (1000 * 60 * 60 * 24 * 365.25)) < years;
+//	}
 	
-	public static boolean isAgeSuperior (int years, String birthdate) {
-		return !isAgeInferior(years, birthdate);
-	}
+//	public static boolean isAgeSuperior (int years, String birthdate) {
+//		return !isAgeInferior(years, birthdate);
+//	}
 	
 	public static boolean equalsDate (Date date_1, Date date_2) {
 		if (date_1 == null || date_2 == null) {

@@ -2,10 +2,10 @@ package controllers.controller.core.validators;
 
 public class RequiredValidator implements Validator {
 
-	private static final RequiredValidator REQUIRED = new RequiredValidator();
+	private static final RequiredValidator VALIDATOR = new RequiredValidator();
 	
 	public static RequiredValidator GET () {
-		return REQUIRED;
+		return VALIDATOR;
 	}
 	
 	private RequiredValidator () {}
