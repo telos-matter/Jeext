@@ -19,7 +19,7 @@ public class Mapping {
 	public Mapping (Class <?> controller, Method method) {
 		if ((! Modifier.isPublic(method.getModifiers())) ||
 				(! Modifier.isStatic(method.getModifiers())) ||
-				(! Void.class.equals(method.getReturnType()))) {
+				(! void.class.equals(method.getReturnType()))) {
    			throw new InvalidMappingMethod(controller, method, "Mappings should have the public and static modifiers, and a return type of void");
    		}
 		
@@ -34,33 +34,31 @@ public class Mapping {
 		this.method = method;
 		
 		this.params = new Param [parameters.length -2];
-		for (int i = 0; i < this.params.length -2; i++) {
+		for (int i = 0; i < this.params.length; i++) {
 			this.params[i] = new Param(controller, method, parameters[i]);
 		}
+		
    	}
 	
-	public void invoke (HttpServletRequest request, HttpServletResponse response) {
+	public void invoke (HttpServletRequest request, HttpServletResponse response) throws Throwable {
 		Object [] parameters = new Object [params.length +2];
 		
 		parameters[parameters.length -2] = request;
 		parameters[parameters.length -1] = response;
 		
-		for (int i = 0; i < parameters.length -2; i++) {
+		for (int i = 0; i < params.length; i++) {
 			parameters[i] = params[i].getParam(request);
 		}
 		
 		try {
 			method.invoke(null, parameters);
-		} catch (IllegalAccessException e) {
-			
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			
-			e.printStackTrace();
-		}
+		} catch (InvocationTargetException exception) {
+
+			throw exception.getCause();
+					
+		} catch (IllegalAccessException | IllegalArgumentException  e) { 
+			e.printStackTrace(); 
+		} 
 	}
 	
 }

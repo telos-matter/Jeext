@@ -13,6 +13,10 @@ public class InvalidParam extends RuntimeException {
 		this.param = param;
 		this.validator = validator;
 	}
+	
+	public InvalidParam ( ) {
+		this(null, null);
+	}
 
 	public Param getParam() {
 		return param;
