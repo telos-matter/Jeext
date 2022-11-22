@@ -13,6 +13,7 @@ import controllers.controller.core.consumers.annotations.Flag;
 import controllers.controller.core.validators.*;
 import controllers.controller.core.validators.annotations.*;
 import controllers.controller.exceptions.InvalidMappingMethodParam;
+import controllers.controller.exceptions.InvalidMappingMethodParamValidator;
 import controllers.controller.exceptions.InvalidParam;
 import controllers.controller.exceptions.UnsupportedType;
 import dao.Manager;
@@ -51,8 +52,40 @@ public class Param {
 		}
 		
 		if (String.class.equals(type)) {
+
+			if (parameter.getAnnotation(NonBlank.class) != null) {
+				_validators.add(NonBlankValidator.GET());
+			}
+
+			Min min;
+			if ((min = parameter.getAnnotation(Min.class)) != null) {
+				int value = (int) min.value();
+				if (value != min.value() || value < 0) {
+					throw new InvalidMappingMethodParamValidator(controller, method, parameter, min.toString(), "Must be a positive or null integer value");
+				}
+				
+				if (min.strict()) {
+					_validators.add(MinStrictStringValidator.GET(value));
+				} else {
+					_validators.add(MinStringValidator.GET(value));
+				}
+			}
 			
-			// TODO: Regex blank length min max..
+			Max max;
+			if ((max = parameter.getAnnotation(Max.class)) != null) {
+				int value = (int) max.value();
+				if (value != max.value() || value < 0) {
+					throw new InvalidMappingMethodParamValidator(controller, method, parameter, max.toString(), "Must be a positive or null integer value");
+				}
+				
+				if (max.strict()) {
+					_validators.add(MaxStrictStringValidator.GET(value));
+				} else {
+					_validators.add(MaxStringValidator.GET(value));
+				}
+			}
+			
+			// TODO regex
 			
 		} else if (Number.class.isAssignableFrom(type)) {
 			
@@ -79,6 +112,7 @@ public class Param {
 			
 		} else if (Date.class.equals(type)) {
 			
+			// TODO before after bigger smaller
 			
 		} else if (Boolean.class.equals(type)) {
 			
@@ -102,11 +136,14 @@ public class Param {
 			
 		} else if (Number.class.isAssignableFrom(type)) {
 			
+			// TODO default
+			
 		} else if (Model.class.isAssignableFrom(type)) {
 			
 			
 		} else if (Date.class.equals(type)) {
 			
+			// TODO default
 			
 		} else if (Boolean.class.equals(type)) {
 			

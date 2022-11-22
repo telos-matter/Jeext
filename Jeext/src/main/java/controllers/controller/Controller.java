@@ -79,6 +79,8 @@ public final class Controller extends HttpServlet {
 		
 		loadMappings(GetMapping.class, getMappings);
 		loadMappings(PostMapping.class, postMappings);
+		
+		// TODO: add init to controllers
 	}
 	
 	@Override
