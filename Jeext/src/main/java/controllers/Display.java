@@ -14,10 +14,11 @@ import util.User;
 public class Display {
 
 
-	@GetMapping("/run")
-	public static void hello (@Required(false) @Flag Boolean age, HttpServletRequest request, HttpServletResponse response) {
+	@GetMapping("/login")
+	public static void hello (@Required(false) @Default("9.3") Short name, HttpServletRequest request, HttpServletResponse response) {
 	
-		System.out.println(age);
+		System.out.println(name);
+		
 	
 	}
 	

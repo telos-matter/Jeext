@@ -2,10 +2,10 @@ package controllers.controller.core.consumers;
 
 public class FlagConsumer implements Consumer {
 
-	private static final FlagConsumer FLAG = new FlagConsumer();
+	private static final FlagConsumer CONSUMER = new FlagConsumer();
 	
 	public static FlagConsumer GET () {
-		return FLAG;
+		return CONSUMER;
 	}
 	
 	private FlagConsumer () {}

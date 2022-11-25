@@ -1,15 +1,8 @@
 package controllers.controller.core;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import controllers.controller.core.annotations.Name;
-import controllers.controller.core.consumers.Consumer;
-import controllers.controller.core.consumers.FlagConsumer;
-import controllers.controller.core.consumers.annotations.Flag;
+import controllers.controller.core.consumers.*;
+import controllers.controller.core.consumers.annotations.*;
 import controllers.controller.core.validators.*;
 import controllers.controller.core.validators.annotations.*;
 import controllers.controller.exceptions.InvalidMappingMethodParam;
@@ -21,9 +14,18 @@ import jakarta.servlet.http.HttpServletRequest;
 import models.Model;
 import util.Parser;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+
 // NOTICE: Other annotations that don't apply are ignored
 // NOTICE: only class types no primitives
 // NOTICE: consumers should be commutative
+
+// TODO ayo bruh recheck wch everything is aight in the consumers / validators
 
 public class Param {
 
@@ -85,7 +87,9 @@ public class Param {
 				}
 			}
 			
-			// TODO regex
+			if (parameter.isAnnotationPresent(Regex.class)) {
+				_validators.add(RegexValidator.GET(parameter.getAnnotation(Regex.class).value()));
+			}
 			
 		} else if (Number.class.isAssignableFrom(type)) {
 			
@@ -134,9 +138,37 @@ public class Param {
 		
 		if (String.class.equals(type)) {
 			
+			if (parameter.isAnnotationPresent(Default.class)) {
+				_consumers.add(DefaultConsumer.GET(parameter.getAnnotation(Default.class).value()));
+			}
+			
+			if (parameter.isAnnotationPresent(Capitalize.class)) {
+				if (parameter.getAnnotation(Capitalize.class).value()) {
+					_consumers.add(ForcedCapitalizeConsumer.GET());
+				} else {
+					_consumers.add(CapitalizeConsumer.GET());
+				}
+			}
+			
+			if (parameter.isAnnotationPresent(UpperCase.class)) {
+				_consumers.add(UpperCaseConsumer.GET());
+			}
+			
+			if (parameter.isAnnotationPresent(LowerCase.class)) {
+				_consumers.add(LowerCaseConsumer.GET());
+			}
+			
 		} else if (Number.class.isAssignableFrom(type)) {
 			
-			// TODO default
+			Default _default;
+			if ((_default = parameter.getAnnotation(Default.class)) != null) {
+				Double value;
+				if ((value = Parser.parseDouble(_default.value())) == null) {
+					throw new InvalidMappingMethodParamValidator(controller, method, parameter, _default.toString(), "Must be a number");
+				}
+				
+				_consumers.add(DefaultNumberConsumer.GET(type, value));
+			}
 			
 		} else if (Model.class.isAssignableFrom(type)) {
 			
