@@ -16,6 +16,7 @@ import util.Parser;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -24,6 +25,9 @@ import java.util.List;
 // NOTICE: Other annotations that don't apply are ignored
 // NOTICE: only class types no primitives
 // NOTICE: consumers should be commutative
+// NOTICE: only localdates for the time being
+// NOTICE: localdate comparisions are strict
+
 
 // TODO ayo bruh recheck wch everything is aight in the consumers / validators
 
@@ -114,7 +118,7 @@ public class Param {
 		} else if (Model.class.isAssignableFrom(type)) {
 			
 			
-		} else if (Date.class.equals(type)) {
+		} else if (LocalDate.class.equals(type)) {
 			
 			// TODO before after bigger smaller
 			
@@ -172,10 +176,23 @@ public class Param {
 			
 		} else if (Model.class.isAssignableFrom(type)) {
 			
+			// TODO default with id
 			
-		} else if (Date.class.equals(type)) {
+		} else if (LocalDate.class.equals(type)) {
 			
-			// TODO default
+			Default _default;
+			if ((_default = parameter.getAnnotation(Default.class)) != null) {
+				LocalDate value;
+				if ((value = Parser.parseDate(_default.value())) == null) {
+					if (_default.value().equalsIgnoreCase("now")) {
+						_consumers.add(DefaultNowDateConsumer.GET());
+					} else {
+						throw new InvalidMappingMethodParamValidator(controller, method, parameter, _default.toString(), "Must be a valid date or 'now'");
+					}
+				} else {
+					_consumers.add(DefaultDateConsumer.GET(value));
+				}
+			}
 			
 		} else if (Boolean.class.equals(type)) {
 			
@@ -184,6 +201,23 @@ public class Param {
 			}
 			
 		} else if (Character.class.equals(type)) {
+			
+			Default _default;
+			if ((_default = parameter.getAnnotation(Default.class)) != null) {
+				Character value;
+				if ((value = Parser.parseChar(_default.value())) == null) {
+					throw new InvalidMappingMethodParamValidator(controller, method, parameter, _default.toString(), "Must be a char");
+				}
+				_consumers.add(DefaultCharConsumer.GET(value));
+			}
+			
+			if (parameter.isAnnotationPresent(UpperCase.class)) {
+				_consumers.add(UpperCaseCharConsumer.GET());
+			}
+			
+			if (parameter.isAnnotationPresent(LowerCase.class)) {
+				_consumers.add(LowerCaseCharConsumer.GET());
+			}
 			
 		}
 
@@ -253,7 +287,7 @@ public class Param {
 		} else if (Long.class.equals(type)) {
 			return Parser.parseLong(parameter);
 			
-		} else if (Date.class.equals(type)) {
+		} else if (LocalDate.class.equals(type)) {
 			return Parser.parseDate(parameter);
 			
 		} else if (Character.class.equals(type)) {

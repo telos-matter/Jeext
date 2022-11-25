@@ -4,6 +4,8 @@ import java.util.regex.Pattern;
 
 public class RegexManager {
 
+	// TODO check
+	
 	public static boolean matches (String regex, String input) {
 		if (input == null) {
 			return false;

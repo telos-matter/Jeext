@@ -31,6 +31,15 @@ public class Strings {
 	public static String toLowerCase (String s) {
 		return (s == null) ? null : s.toLowerCase();
 	}
+
+	public static Character toUpperCase (Character c) {
+		return (c == null) ? null : Character.toUpperCase(c);
+	}
+	
+	public static Character toLowerCase (Character c) {
+		return (c == null) ? null : Character.toLowerCase(c);
+	}
+	
 	
 	public static String trim (String s) {
 		return (s == null) ? null : s.trim();

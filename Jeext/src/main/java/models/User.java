@@ -1,11 +1,8 @@
-package util;
+package models;
 
 import java.io.Serializable;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-
-import models.Model;
-
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;

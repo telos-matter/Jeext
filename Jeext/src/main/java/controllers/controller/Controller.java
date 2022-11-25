@@ -33,6 +33,18 @@ public final class Controller extends HttpServlet {
 	private static Map <String, Mapping> getMappings;
 	private static Map <String, Mapping> postMappings;
 	
+	public static void writeSimpleText (HttpServletResponse response, String text) {
+		try {
+			response.getWriter().write("<html><head></head><body><p>" +text +"</p></body></html>");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void writeSimpleText (HttpServletResponse response, Object object) {
+		writeSimpleText(response, "" +object);
+	}
+	
     private void loadControllers () {
     	
     	/**

@@ -20,4 +20,14 @@
     <servlet-name>Gf</servlet-name>
     <url-pattern>/Gf</url-pattern>
   </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>hj</display-name>
+    <servlet-name>hj</servlet-name>
+    <servlet-class>controllers.controller.hj</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>hj</servlet-name>
+    <url-pattern>/hj</url-pattern>
+  </servlet-mapping>
 </web-app>

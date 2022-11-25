@@ -1,6 +1,9 @@
 package controllers;
 
 
+import java.time.LocalDate;
+
+import controllers.controller.Controller;
 import controllers.controller.core.annotations.*;
 import controllers.controller.core.validators.annotations.*;
 import controllers.controller.core.consumers.annotations.*;
@@ -8,17 +11,16 @@ import controllers.controller.exceptions.InvalidMappingMethod;
 import controllers.controller.exceptions.UnsupportedType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import util.User;
+import models.User;
 
 @WebController()
 public class Display {
 
 
 	@GetMapping("/login")
-	public static void hello (@Required(false) @Default("9.3") Short name, HttpServletRequest request, HttpServletResponse response) {
+	public static void hello (@Required(false) @Default("now") LocalDate name, HttpServletRequest request, HttpServletResponse response) {
 	
-		System.out.println(name);
-		
+		Controller.writeSimpleText(response, name);
 	
 	}
 	

@@ -1,46 +1,10 @@
 package util;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-import controllers.controller.exceptions.UnsupportedType;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 
 public class Parser {
 
-	public static  <T extends Number> T cast (Double value, Class <T> type) {
-		if (value == null) {
-			return null;
-		} else if (Integer.class.equals(type)) {
-			return (T) (Integer) value.intValue();
-			
-		} else if (Float.class.equals(type)) {
-			return Parser.parseFloat(parameter);
-			
-		} else if (Double.class.equals(type)) {
-			return Parser.parseDouble(parameter);
-			
-		} else if (Long.class.equals(type)) {
-			return Parser.parseLong(parameter);
-			
-		} else if (Date.class.equals(type)) {
-			return Parser.parseDate(parameter);
-			
-		} else if (Character.class.equals(type)) {
-			return Parser.parseChar(parameter);
-			
-		} else if (Short.class.equals(type)) {
-			return Parser.parseShort(parameter);
-			
-		} else if (Byte.class.equals(type)) {
-			return Parser.parseByte(parameter);
-			
-		} else {
-			throw new UnsupportedType(type);
-		}
-		return null;
-	}
-	
 	public static Integer parseInt (String s) {
 		if (s == null) {
 			return null;
@@ -125,15 +89,14 @@ public class Parser {
 		return (s == null)? null : (s.length() == 1)? s.charAt(0) : null;
 	}
 	
-	public static Date parseDate (String s) { // TODO: make sure this is all good
+	public static LocalDate parseDate (String s) {
 		if (s == null) {
 			return null;
 		}
 		try {
-			return new SimpleDateFormat(Dates.DATE_FORMAT).parse(s);
-		} catch (ParseException e) {
+			return LocalDate.parse(s, Dates.DATE_FORMATER);
+		} catch (DateTimeParseException  e) {
 			return null;
 		}
 	}
-	
 }
