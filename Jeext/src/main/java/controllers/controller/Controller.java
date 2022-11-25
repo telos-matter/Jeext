@@ -2,7 +2,9 @@ package controllers.controller;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -14,6 +16,8 @@ import controllers.controller.core.Mapping;
 import controllers.controller.core.annotations.GetMapping;
 import controllers.controller.core.annotations.PostMapping;
 import controllers.controller.core.annotations.WebController;
+import controllers.controller.exceptions.InvalidInitMethod;
+import controllers.controller.exceptions.InvalidMappingMethod;
 import controllers.controller.exceptions.InvalidParam;
 import controllers.controller.exceptions.InvalidPath;
 import controllers.controller.exceptions.UnhandledUserException;
@@ -45,8 +49,41 @@ public final class Controller extends HttpServlet {
 		writeSimpleText(response, "" +object);
 	}
 	
-    private void loadControllers () {
-    	
+    
+    private static void initControllers () {
+   		for (Class <?> controller : controllers) {
+   			try {
+   				Method init = controller.getMethod("init", null);
+   				
+   				if ((! Modifier.isPublic(init.getModifiers())) ||
+   						(! Modifier.isStatic(init.getModifiers())) ||
+   						(! void.class.equals(init.getReturnType()))) {
+   					throw new InvalidInitMethod(controller, "Init should have the public and static modifiers, and a return type of void");
+   				}
+   				
+   				if (init.getParameterCount() != 0) {
+   					throw new InvalidInitMethod(controller, "Init should expect no parameters");
+   				}
+   				
+   				try {
+   					init.invoke(null, null);
+   				} catch (IllegalAccessException e) {
+   					e.printStackTrace();
+   				} catch (IllegalArgumentException e) {
+   					e.printStackTrace();
+   				} catch (InvocationTargetException e) {
+   					throw new UnhandledUserException(e);
+   				}
+   				
+   			} catch (NoSuchMethodException e) {
+   				continue;
+   			} catch (SecurityException e) {
+   				e.printStackTrace();
+   			}
+   		}
+    }
+	
+    private static void loadControllers () {
     	/**
     	 * Manually add your controllers here for the time being
     	 * The -parameters option should be added to the compiler
@@ -54,7 +91,7 @@ public final class Controller extends HttpServlet {
     	
     	controllers = new HashSet <> ();
     	
-    	controllers.add(Display.class);   
+    	controllers.add(Display.class);
     }
     
    	private static void loadMappings (Class <? extends Annotation> type, Map <String, Mapping> map) {
@@ -82,17 +119,19 @@ public final class Controller extends HttpServlet {
    		}
    	}
     
+   	public static void load () {
+   		loadControllers();
+   		
+   		getMappings = new HashMap <> ();
+   		postMappings = new HashMap <> ();
+   		
+   		loadMappings(GetMapping.class, getMappings);
+   		loadMappings(PostMapping.class, postMappings);
+   	}
+   	
 	@Override
 	public void init () {
-		loadControllers();
-
-		getMappings = new HashMap <> ();
-		postMappings = new HashMap <> ();
-		
-		loadMappings(GetMapping.class, getMappings);
-		loadMappings(PostMapping.class, postMappings);
-		
-		// TODO: add init to controllers
+		initControllers();
 	}
 	
 	@Override
@@ -132,6 +171,5 @@ public final class Controller extends HttpServlet {
 			response.sendError(HttpServletResponse.SC_NOT_FOUND);
 		}
 	}
-
 
 }

@@ -6,6 +6,7 @@ import controllers.controller.core.consumers.annotations.*;
 import controllers.controller.core.validators.*;
 import controllers.controller.core.validators.annotations.*;
 import controllers.controller.exceptions.InvalidMappingMethodParam;
+import controllers.controller.exceptions.InvalidMappingMethodParamConsumer;
 import controllers.controller.exceptions.InvalidMappingMethodParamValidator;
 import controllers.controller.exceptions.InvalidParam;
 import controllers.controller.exceptions.UnsupportedType;
@@ -19,7 +20,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 
@@ -208,7 +208,7 @@ public class Param {
 			if ((_default = parameter.getAnnotation(Default.class)) != null) {
 				Double value;
 				if ((value = Parser.parseDouble(_default.value())) == null) {
-					throw new InvalidMappingMethodParamValidator(controller, method, parameter, _default.toString(), "Must be a number");
+					throw new InvalidMappingMethodParamConsumer(controller, method, parameter, _default.toString(), "Must be a number");
 				}
 				
 				_consumers.add(DefaultNumberConsumer.GET(type, value));
@@ -227,7 +227,7 @@ public class Param {
 					if (_default.value().equalsIgnoreCase("now")) {
 						_consumers.add(DefaultNowDateConsumer.GET());
 					} else {
-						throw new InvalidMappingMethodParamValidator(controller, method, parameter, _default.toString(), "Must be a valid date or 'now'");
+						throw new InvalidMappingMethodParamConsumer(controller, method, parameter, _default.toString(), "Must be a valid date or 'now'");
 					}
 				} else {
 					_consumers.add(DefaultDateConsumer.GET(value));
@@ -246,7 +246,7 @@ public class Param {
 			if ((_default = parameter.getAnnotation(Default.class)) != null) {
 				Character value;
 				if ((value = Parser.parseChar(_default.value())) == null) {
-					throw new InvalidMappingMethodParamValidator(controller, method, parameter, _default.toString(), "Must be a char");
+					throw new InvalidMappingMethodParamConsumer(controller, method, parameter, _default.toString(), "Must be a char");
 				}
 				_consumers.add(DefaultCharConsumer.GET(value));
 			}

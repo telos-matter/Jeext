@@ -2,20 +2,14 @@ package util;
 
 import java.util.regex.Pattern;
 
-public class RegexManager {
+public class Regexes {
 
-	// TODO check
-	
 	public static boolean matches (String regex, String input) {
 		if (input == null) {
 			return false;
 		}
-		try {
-			return Pattern.matches(regex, input);						
-		} catch (Exception e) {
-			System.out.println("Regex failed to try and match: "+regex+" and "+input);
-			return false;
-		}
+		
+		return Pattern.compile(regex).matcher(input).find();				
 	}
 	
 	public static boolean notMatches (String regex, String input) {
@@ -27,6 +21,10 @@ public class RegexManager {
 			return false;
 		}
 		return input.length() == length;
+	}
+	
+	public static boolean notLength (String input, int length) {
+		return ! length (input, length);
 	}
 	
 	public static boolean length (int min, int max, String input) {
@@ -42,10 +40,6 @@ public class RegexManager {
 	
 	public static boolean length (int min, String input) {
 		return length (min, -1, input);
-	}
-	
-	public static boolean notLength (String input, int length) {
-		return ! length (input, length);
 	}
 	
 	public static boolean notLength (int min, int max, String input) {

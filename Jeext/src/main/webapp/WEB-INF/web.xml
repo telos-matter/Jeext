@@ -30,4 +30,7 @@
     <servlet-name>hj</servlet-name>
     <url-pattern>/hj</url-pattern>
   </servlet-mapping>
+  <listener>
+    <listener-class>controllers.controller.Listener</listener-class>
+  </listener>
 </web-app>
