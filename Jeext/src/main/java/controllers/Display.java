@@ -17,7 +17,7 @@ import models.User;
 public class Display {
 
 	@GetMapping("/login")
-	public static void hello (@Required(true) @Older("0018-00-00") LocalDate name, HttpServletRequest request, HttpServletResponse response) {
+	public static void hello (@Required(true) @Alphabetic(false) String name, HttpServletRequest request, HttpServletResponse response) {
 	
 		Controller.writeSimpleText(response, name);
 	

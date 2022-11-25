@@ -17,7 +17,6 @@ import controllers.controller.core.annotations.GetMapping;
 import controllers.controller.core.annotations.PostMapping;
 import controllers.controller.core.annotations.WebController;
 import controllers.controller.exceptions.InvalidInitMethod;
-import controllers.controller.exceptions.InvalidMappingMethod;
 import controllers.controller.exceptions.InvalidParam;
 import controllers.controller.exceptions.InvalidPath;
 import controllers.controller.exceptions.UnhandledUserException;

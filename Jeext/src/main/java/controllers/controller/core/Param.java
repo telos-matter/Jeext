@@ -97,6 +97,26 @@ public class Param {
 				_validators.add(RegexValidator.GET(parameter.getAnnotation(Regex.class).value()));
 			}
 			
+			if (parameter.isAnnotationPresent(Email.class)) {
+				_validators.add(RegexValidator.GET("^([a-zA-Z0-9_\\.-]+)@([\\da-z\\.-]+)\\.([a-z\\.]{2,5})$"));
+			}
+			
+			if (parameter.isAnnotationPresent(Alphabetic.class)) {
+				if (parameter.getAnnotation(Alphabetic.class).value()) {
+					_validators.add(RegexValidator.GET("^[a-zA-Z_]+$"));
+				} else {
+					_validators.add(RegexValidator.GET("^[a-zA-Z]+$"));
+				}
+			}
+			
+			if (parameter.isAnnotationPresent(Alphanumeric.class)) {
+				if (parameter.getAnnotation(Alphanumeric.class).value()) {
+					_validators.add(RegexValidator.GET("^[a-zA-Z0-9_]+$"));
+				} else {
+					_validators.add(RegexValidator.GET("^[a-zA-Z0-9]+$"));
+				}
+			}
+			
 		} else if (Number.class.isAssignableFrom(type)) {
 			
 			Min min;
