@@ -12,6 +12,7 @@ import controllers.controller.exceptions.UnsupportedType;
 import dao.Manager;
 import jakarta.servlet.http.HttpServletRequest;
 import models.Model;
+import util.Dates.DateValuesHolder;
 import util.Parser;
 
 import java.lang.reflect.Method;
@@ -28,6 +29,7 @@ import java.util.List;
 // NOTICE: only localdates for the time being
 // NOTICE: localdate comparisions are strict
 
+// TODO: validator exception --> consumer
 
 // TODO ayo bruh recheck wch everything is aight in the consumers / validators
 
@@ -119,8 +121,46 @@ public class Param {
 			
 			
 		} else if (LocalDate.class.equals(type)) {
+
+			Before before;
+			if ((before = parameter.getAnnotation(Before.class)) != null) {
+				LocalDate value;
+				if ((value = Parser.parseDate(before.value())) == null) {
+					throw new InvalidMappingMethodParamValidator(controller, method, parameter, before.toString(), "Must be a valid Date");
+				}
+				
+				_validators.add(BeforeValidator.GET(value));
+			}
 			
-			// TODO before after bigger smaller
+			After after;
+			if ((after = parameter.getAnnotation(After.class)) != null) {
+				LocalDate value;
+				if ((value = Parser.parseDate(after.value())) == null) {
+					throw new InvalidMappingMethodParamValidator(controller, method, parameter, after.toString(), "Must be a valid Date");
+				}
+				
+				_validators.add(AfterValidator.GET(value));
+			}
+
+			Younger younger;
+			if ((younger = parameter.getAnnotation(Younger.class)) != null) {
+				DateValuesHolder value;
+				if ((value = DateValuesHolder.parse(younger.value())) == null) {
+					throw new InvalidMappingMethodParamValidator(controller, method, parameter, younger.toString(), "Must be a valid Date Values Holder");
+				}
+				
+				_validators.add(YoungerValidator.GET(value));
+			}
+
+			Older older;
+			if ((older = parameter.getAnnotation(Older.class)) != null) {
+				DateValuesHolder value;
+				if ((value = DateValuesHolder.parse(older.value())) == null) {
+					throw new InvalidMappingMethodParamValidator(controller, method, parameter, older.toString(), "Must be a valid Date Values Holder");
+				}
+				
+				_validators.add(OlderValidator.GET(value));
+			}
 			
 		} else if (Boolean.class.equals(type)) {
 			

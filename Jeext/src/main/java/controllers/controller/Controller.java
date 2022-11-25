@@ -99,6 +99,8 @@ public final class Controller extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		final String path = request.getRequestURI().replaceFirst(request.getContextPath(), "");
 
+		System.out.println("Path: " +path);
+		
 		invokeMapping(path, getMappings, request, response);
 	}
 

@@ -2,7 +2,6 @@ package util;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Objects;
 
 public class Dates {
 
@@ -55,17 +54,19 @@ public class Dates {
 		private final int years, months, days;
 
 		public static DateValuesHolder parse (String s) {
-			if (Objects.requireNonNull(s).length() == 10) {
-				Integer years = Parser.parseInt(s.substring(0, 4));
-				Integer months = Parser.parseInt(s.substring(5, 7));
-				Integer days = Parser.parseInt(s.substring(8, 10));
-				
-				if (years != null && months != null && days != null) {
-					return new DateValuesHolder(years, months, days);
-				}
+			if (s == null || s.length() != 10) {
+				return null;
 			}
 			
-			throw new RuntimeException("Invalid format. Must be of the form: yyyy-mm-dd");
+			Integer years = Parser.parseInt(s.substring(0, 4));
+			Integer months = Parser.parseInt(s.substring(5, 7));
+			Integer days = Parser.parseInt(s.substring(8, 10));
+			
+			if (years == null || months == null || days == null || years < 0 || months < 0 || days < 0) {
+				return null;
+			}
+			
+			return new DateValuesHolder(years, months, days);
 		}
 		
 		public DateValuesHolder(int years, int months, int days) {
