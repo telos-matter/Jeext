@@ -8,7 +8,7 @@ public class Listener implements ServletContextListener {
 
 	@Override
 	public void contextInitialized(ServletContextEvent event) {
-		Controller.load();
+		Controller.load(event.getServletContext());
 	}
 	
 	@Override

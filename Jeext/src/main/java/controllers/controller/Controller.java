@@ -1,5 +1,6 @@
 package controllers.controller;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -21,6 +22,7 @@ import controllers.controller.exceptions.InvalidParam;
 import controllers.controller.exceptions.InvalidPath;
 import controllers.controller.exceptions.UnhandledUserException;
 import controllers.controller.exceptions.UnsupportedType;
+import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -82,11 +84,15 @@ public final class Controller extends HttpServlet {
    		}
     }
 	
-    private static void loadControllers () {
-    	/**
-    	 * Manually add your controllers here for the time being
-    	 * The -parameters option should be added to the compiler
-    	 */
+    // TODO: wait why is classes in web-inf
+    // NOTICE: controllers should be on the root
+    // NOTICE: tomcat specific implementation
+    /**
+     * The -parameters option should be added to the compiler / or have the name annotation on every mapping parameter
+     */
+    private static void loadControllers (ServletContext context) {
+    	File root = new File (String.format("%sWEB-INF%sclasses%scontrollers", context.getRealPath("/"), File.separator, File.separator));
+    	
     	
     	controllers = new HashSet <> ();
     	
@@ -118,8 +124,8 @@ public final class Controller extends HttpServlet {
    		}
    	}
     
-   	public static void load () {
-   		loadControllers();
+   	public static void load (ServletContext context) {
+   		loadControllers(context);
    		
    		getMappings = new HashMap <> ();
    		postMappings = new HashMap <> ();
