@@ -17,14 +17,10 @@ import models.User;
 public class Display {
 
 	@GetMapping("/login")
-	public static void hello (@Required(false) @Default("Hello!") String name, HttpServletRequest request, HttpServletResponse response) {
+	public static void hello (@Required(false) @Default("telos") String name, HttpServletRequest request, HttpServletResponse response) {
 	
 		Controller.writeSimpleText(response, name);
 	
-	}
-	
-	public static void main (String args []) {
-		
 	}
 	
 }
