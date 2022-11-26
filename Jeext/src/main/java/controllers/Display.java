@@ -13,11 +13,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import models.User;
 
-@WebController()
+@WebController
 public class Display {
 
 	@GetMapping("/login")
-	public static void hello (@Required(true) @Alphabetic(false) String name, HttpServletRequest request, HttpServletResponse response) {
+	public static void hello (@Required(false) @Default("Hello!") String name, HttpServletRequest request, HttpServletResponse response) {
 	
 		Controller.writeSimpleText(response, name);
 	

@@ -28,6 +28,7 @@ import java.util.List;
 // NOTICE: consumers should be commutative
 // NOTICE: only localdates for the time being
 // NOTICE: localdate comparisions are strict
+// NOTICE: default in string works on blank too
 
 // TODO: validator exception --> consumer
 

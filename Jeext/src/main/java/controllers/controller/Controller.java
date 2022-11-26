@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Set;
 
 
-import controllers.Display;
 import controllers.controller.core.Mapping;
 import controllers.controller.core.annotations.GetMapping;
 import controllers.controller.core.annotations.PostMapping;
@@ -50,8 +49,90 @@ public final class Controller extends HttpServlet {
 		writeSimpleText(response, "" +object);
 	}
 	
+    // TODO: wait why is classes in web-inf
+    // NOTICE: controllers should be on the root
+    // NOTICE: tomcat specific implementation
+	// NOTICE: ~very~ static implementation, no changing names of package nothing
+    /**
+     * The -parameters option should be added to the compiler / or have the name annotation on every mapping parameter
+     */
+   	public static void load (ServletContext context) {
+   		loadControllers(context);
+   		
+   		getMappings = new HashMap <> ();
+   		postMappings = new HashMap <> ();
+   		
+   		loadMappings(GetMapping.class, getMappings);
+   		loadMappings(PostMapping.class, postMappings);
+   	}
+   	
+    private static void loadControllers (ServletContext context) {
+    	controllers = loadPackage(
+		    			"controllers",
+		    			(new File (
+		    					String.format("%sWEB-INF%sclasses%scontrollers", context.getRealPath("/"), File.separator, File.separator))
+	    					).listFiles(
+	    							(File file) -> {return !(file.isDirectory() && file.getName().equals("controller"));}
+	    							));
+    }
     
-    private static void initControllers () {
+    private static Set <Class <?>> loadPackage (String dir, File [] content) {
+    	Set <Class <?>> classes = new HashSet <> ();
+    	
+    	for (File element : content) {
+    		if (element.isFile() && element.getName().endsWith(".class")) {
+    			loadClassIntoSet(dir +'.' +element.getName(), classes); 
+    			
+    		} else if (element.isDirectory()) {
+    			classes.addAll(loadPackage(dir +'.' +element.getName(), element.listFiles()));
+    			
+    		}
+    	}
+    	
+    	return classes;
+    }
+    
+    private static void loadClassIntoSet (String name, Set <Class <?>> set) {
+        try {
+        	Class <?> clazz = Class.forName(name.substring(0, name.lastIndexOf('.')));
+           
+        	if (clazz.isAnnotationPresent(WebController.class)) {
+        		set.add(clazz);
+        	}
+        } catch (ClassNotFoundException e) {}
+    }
+   	
+   	private static void loadMappings (Class <? extends Annotation> type, Map <String, Mapping> map) {
+   		for (Class <?> controller : controllers) {
+   			for (Method method : controller.getDeclaredMethods()) {
+   				if (method.isAnnotationPresent(type)) {
+   					
+   					String path;
+   					
+   					if (type == GetMapping.class) {
+   						path = controller.getAnnotation(WebController.class).value() +method.getAnnotation(GetMapping.class).value();
+   					} else if (type == PostMapping.class) {
+   						path = controller.getAnnotation(WebController.class).value() +method.getAnnotation(PostMapping.class).value();
+   					} else {
+   						throw new UnsupportedType(type);
+   					}
+   					
+   					if (! path.startsWith("/")) {
+   						throw new InvalidPath(controller, method, path);
+   					}
+   					
+   					map.put(path, new Mapping(controller, method));
+   				}
+   			}
+   		}
+   	}
+   	
+	@Override
+	public void init () {
+		initControllers();
+	}
+	
+	 private static void initControllers () {
    		for (Class <?> controller : controllers) {
    			try {
    				Method init = controller.getMethod("init", null);
@@ -84,67 +165,10 @@ public final class Controller extends HttpServlet {
    		}
     }
 	
-    // TODO: wait why is classes in web-inf
-    // NOTICE: controllers should be on the root
-    // NOTICE: tomcat specific implementation
-    /**
-     * The -parameters option should be added to the compiler / or have the name annotation on every mapping parameter
-     */
-    private static void loadControllers (ServletContext context) {
-    	File root = new File (String.format("%sWEB-INF%sclasses%scontrollers", context.getRealPath("/"), File.separator, File.separator));
-    	
-    	
-    	controllers = new HashSet <> ();
-    	
-    	controllers.add(Display.class);
-    }
-    
-   	private static void loadMappings (Class <? extends Annotation> type, Map <String, Mapping> map) {
-   		for (Class <?> controller : controllers) {
-   			for (Method method : controller.getDeclaredMethods()) {
-   				if (method.isAnnotationPresent(type)) {
-   					
-   					String path;
-   					
-   					if (type == GetMapping.class) {
-   						path = controller.getAnnotation(WebController.class).value() +method.getAnnotation(GetMapping.class).value();
-   					} else if (type == PostMapping.class) {
-   						path = controller.getAnnotation(WebController.class).value() +method.getAnnotation(PostMapping.class).value();
-   					} else {
-   						throw new UnsupportedType(type);
-   					}
-   					
-   					if (! path.startsWith("/")) {
-   						throw new InvalidPath(controller, method, path);
-   					}
-   					
-   					map.put(path, new Mapping(controller, method));
-   				}
-   			}
-   		}
-   	}
-    
-   	public static void load (ServletContext context) {
-   		loadControllers(context);
-   		
-   		getMappings = new HashMap <> ();
-   		postMappings = new HashMap <> ();
-   		
-   		loadMappings(GetMapping.class, getMappings);
-   		loadMappings(PostMapping.class, postMappings);
-   	}
-   	
-	@Override
-	public void init () {
-		initControllers();
-	}
-	
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		final String path = request.getRequestURI().replaceFirst(request.getContextPath(), "");
 
-		System.out.println("Path: " +path);
-		
 		invokeMapping(path, getMappings, request, response);
 	}
 
