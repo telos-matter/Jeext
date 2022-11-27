@@ -10,12 +10,6 @@ public class Dates {
 	 */
 	public static final DateTimeFormatter DATE_FORMATER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	
-	public static void main(String[] args) {
-		LocalDate bd = LocalDate.of(2001,10,14);
-
-		System.out.println(hasElapsed(bd, 21));
-	}
-	
 	public static boolean hasElapsed (LocalDate start, int years, int months, int days) {
 		return start.plusDays(days).plusMonths(months).plusYears(years).isBefore(LocalDate.now());
 	}

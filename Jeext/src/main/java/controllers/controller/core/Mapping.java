@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.util.Set;
 
 import controllers.controller.exceptions.InvalidMappingMethod;
 import controllers.controller.exceptions.UnsupportedType;
@@ -82,15 +83,21 @@ public class Mapping {
 		}
 	}
 	
-	public boolean hasPermission (Permission [] permissions) {
+	public boolean needsPermission () {
+		return permissions.length != 0;
+	}
+	
+	public boolean hasPermission (Set <Permission> permissions) {
 		if (this.permissions.length == 0) {
 			return true;
-		} else {
+			
+		} else if (permissions.size() == 0) {
+			return false;
+			
+		} else {	
 			for (Permission permission : this.permissions) {
-				for (Permission _permission : permissions) {
-					if (permission == _permission) {
-						return true;
-					}
+				if (permissions.contains(permission)) {
+					return true;
 				}
 			}
 		}

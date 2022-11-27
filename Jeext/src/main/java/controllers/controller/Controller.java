@@ -29,7 +29,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import models.core.Permission;
 
-@WebServlet("/")
+@WebServlet("/controllers/*")
 public final class Controller extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	
@@ -54,7 +54,12 @@ public final class Controller extends HttpServlet {
     // NOTICE: controllers should be on the root
     // NOTICE: tomcat specific implementation
 	// NOTICE: ~very~ static implementation, no changing names of package nothing
-    /**
+    // NOTICE: /resources & /controllers is taken
+	// NOTICE: use the path attr in request not uri
+	
+	// TODO: add auto resend params
+	
+	/**
      * The -parameters option should be added to the compiler / or have the name annotation on every mapping parameter
      */
    	public static void load (ServletContext context) {
@@ -134,7 +139,7 @@ public final class Controller extends HttpServlet {
    						throw new UnsupportedType(type);
    					}
    					
-   					if (! path.startsWith("/")) {
+   					if (!path.startsWith("/") || path.startsWith("/resources") || path.startsWith("/controllers")) {
    						throw new InvalidPath(controller, method, path);
    					}
    					
@@ -149,7 +154,8 @@ public final class Controller extends HttpServlet {
 		initControllers();
 	}
 	
-	 private static void initControllers () {
+	private static void initControllers () {
+		
    		for (Class <?> controller : controllers) {
    			try {
    				Method init = controller.getMethod("init", null);
@@ -181,7 +187,7 @@ public final class Controller extends HttpServlet {
    			}
    		}
     }
-	
+
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		invokeMapping(getMappings, request, response);

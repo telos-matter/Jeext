@@ -6,7 +6,7 @@ A, Spring inspired, JEE suite of tools
 <a href="Jeext/src/main/java/controllers/Display.java">example</a>
 
 
-Currently in beta-mode / quite statically implemented
+Currently in testing-mode / quite statically implemented
 
 
 Documentation is on the way
