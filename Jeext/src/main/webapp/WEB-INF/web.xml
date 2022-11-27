@@ -1,36 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd" version="4.0">
-  <servlet>
-    <description></description>
-    <display-name>Empty</display-name>
-    <servlet-name>Empty</servlet-name>
-    <servlet-class>controllers.Empty</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>Empty</servlet-name>
-    <url-pattern>/Empty</url-pattern>
-  </servlet-mapping>
-  <servlet>
-    <description></description>
-    <display-name>Gf</display-name>
-    <servlet-name>Gf</servlet-name>
-    <servlet-class>controllers.controller.Gf</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>Gf</servlet-name>
-    <url-pattern>/Gf</url-pattern>
-  </servlet-mapping>
-  <servlet>
-    <description></description>
-    <display-name>hj</display-name>
-    <servlet-name>hj</servlet-name>
-    <servlet-class>controllers.controller.hj</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>hj</servlet-name>
-    <url-pattern>/hj</url-pattern>
-  </servlet-mapping>
-  <listener>
-    <listener-class>controllers.controller.Listener</listener-class>
-  </listener>
+  
 </web-app>

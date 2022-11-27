@@ -6,17 +6,20 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 
 import controllers.controller.exceptions.InvalidMappingMethod;
+import controllers.controller.exceptions.UnsupportedType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import models.User;
+import models.core.Permission;
 
 public class Mapping {
 
 	private Method method;
 	private Param [] params;
+	private Access access;
+	private Permission [] permissions;
 	
-	
-	
-	public Mapping (Class <?> controller, Method method) {
+	public Mapping (Class <?> controller, Method method, Access access, Permission[] permissions) {
 		if ((! Modifier.isPublic(method.getModifiers())) ||
 				(! Modifier.isStatic(method.getModifiers())) ||
 				(! void.class.equals(method.getReturnType()))) {
@@ -38,6 +41,12 @@ public class Mapping {
 			this.params[i] = new Param(controller, method, parameters[i]);
 		}
 		
+		if (access == Access.DEFAULT) {
+			throw new InvalidMappingMethod(controller, method, "Access type can't be default on controllers!");
+		}
+		this.access = access;
+		
+		this.permissions = permissions;
    	}
 	
 	public void invoke (HttpServletRequest request, HttpServletResponse response) throws Throwable {
@@ -59,6 +68,34 @@ public class Mapping {
 		} catch (IllegalAccessException | IllegalArgumentException  e) { 
 			e.printStackTrace(); 
 		} 
+	}
+	
+	public boolean canAccess (User user) {
+		switch (access) {
+		
+		case ALL: return true;
+		case IDENTIFIED: return user != null;
+		case ANONYMOUS: return user == null;
+		case NONE: return false;
+		
+		default: throw new UnsupportedType(access);
+		}
+	}
+	
+	public boolean hasPermission (Permission [] permissions) {
+		if (this.permissions.length == 0) {
+			return true;
+		} else {
+			for (Permission permission : this.permissions) {
+				for (Permission _permission : permissions) {
+					if (permission == _permission) {
+						return true;
+					}
+				}
+			}
+		}
+		
+		return false;
 	}
 	
 }

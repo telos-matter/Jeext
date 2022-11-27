@@ -12,7 +12,7 @@ import controllers.controller.exceptions.InvalidParam;
 import controllers.controller.exceptions.UnsupportedType;
 import dao.Manager;
 import jakarta.servlet.http.HttpServletRequest;
-import models.Model;
+import models.core.Model;
 import util.Dates.DateValuesHolder;
 import util.Parser;
 
@@ -29,6 +29,7 @@ import java.util.List;
 // NOTICE: only localdates for the time being
 // NOTICE: localdate comparisions are strict
 // NOTICE: default in string works on blank too
+// NOTICE: user can throw invaldparam
 
 // TODO: validator exception --> consumer
 

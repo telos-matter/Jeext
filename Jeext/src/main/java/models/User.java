@@ -8,6 +8,7 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import models.core.Model;
 import util.Strings;
 
 import javax.persistence.Id;

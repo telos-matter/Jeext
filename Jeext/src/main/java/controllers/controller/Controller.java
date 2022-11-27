@@ -11,7 +11,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-
+import controllers.controller.core.Access;
 import controllers.controller.core.Mapping;
 import controllers.controller.core.annotations.GetMapping;
 import controllers.controller.core.annotations.PostMapping;
@@ -27,6 +27,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import models.core.Permission;
 
 @WebServlet("/")
 public final class Controller extends HttpServlet {
@@ -107,12 +108,28 @@ public final class Controller extends HttpServlet {
    			for (Method method : controller.getDeclaredMethods()) {
    				if (method.isAnnotationPresent(type)) {
    					
+   					WebController controllerAnnotation = controller.getAnnotation(WebController.class);
+   					
    					String path;
+   					Access access;
+   					Permission [] permissions;
    					
    					if (type == GetMapping.class) {
-   						path = controller.getAnnotation(WebController.class).value() +method.getAnnotation(GetMapping.class).value();
+   						GetMapping mappingAnnotation = method.getAnnotation(GetMapping.class);
+   						
+   						path = controllerAnnotation.value() +mappingAnnotation.value();
+   						
+   						access = (mappingAnnotation.access() == Access.DEFAULT)? controllerAnnotation.access() : mappingAnnotation.access();
+   						permissions = (mappingAnnotation.permission().length == 0)? controllerAnnotation.permission() : mappingAnnotation.permission();
+   						
    					} else if (type == PostMapping.class) {
-   						path = controller.getAnnotation(WebController.class).value() +method.getAnnotation(PostMapping.class).value();
+   						PostMapping mappingAnnotation = method.getAnnotation(PostMapping.class);
+   						
+   						path = controllerAnnotation.value() +mappingAnnotation.value();
+   						
+   						access = (mappingAnnotation.access() == Access.DEFAULT)? controllerAnnotation.access() : mappingAnnotation.access();
+   						permissions = (mappingAnnotation.permission().length == 0)? controllerAnnotation.permission() : mappingAnnotation.permission();
+   						
    					} else {
    						throw new UnsupportedType(type);
    					}
@@ -121,7 +138,7 @@ public final class Controller extends HttpServlet {
    						throw new InvalidPath(controller, method, path);
    					}
    					
-   					map.put(path, new Mapping(controller, method));
+   					map.put(path, new Mapping(controller, method, access, permissions));
    				}
    			}
    		}
@@ -167,38 +184,36 @@ public final class Controller extends HttpServlet {
 	
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		final String path = request.getRequestURI().replaceFirst(request.getContextPath(), "");
-
-		invokeMapping(path, getMappings, request, response);
+		invokeMapping(getMappings, request, response);
 	}
 
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		final String path = request.getRequestURI().replaceFirst(request.getContextPath(), "");
-
-		invokeMapping(path, postMappings, request, response);
+		invokeMapping(postMappings, request, response);
 	}
 	
-	private static void invokeMapping (String path, Map <String, Mapping> map, HttpServletRequest request, HttpServletResponse response) throws IOException {
-		Mapping mapping = map.get(path);
-		
-		if (mapping != null) {
-			try {
-				
-				mapping.invoke(request, response);
-				
-			} catch (Throwable cause) {
-				
-				if (cause instanceof InvalidParam) {
-					response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-				} else {
-					throw new UnhandledUserException(cause);
-				}
-				
+	private static void invokeMapping (Map <String, Mapping> map, HttpServletRequest request, HttpServletResponse response) throws IOException {
+		try {
+			
+			map.get((String) request.getAttribute("path")).invoke(request, response);
+			
+		} catch (Throwable cause) {
+			
+			if (cause instanceof InvalidParam) {
+				response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+			} else {
+				throw new UnhandledUserException(cause);
 			}
-		} else {
-			response.sendError(HttpServletResponse.SC_NOT_FOUND);
+			
 		}
+	}
+	
+	public static Mapping getGetMapping (String path) {
+		return getMappings.get(path);
+	}
+	
+	public static Mapping getPostMapping (String path) {
+		return postMappings.get(path);
 	}
 
 }
