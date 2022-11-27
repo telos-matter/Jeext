@@ -4,38 +4,37 @@ import java.io.Serializable;
 import java.time.LocalDate;
 
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 
 import models.core.Model;
+import models.core.Permission;
 import util.Strings;
 
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
-import javax.persistence.CascadeType;
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 
-import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.FetchType;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
-import javax.persistence.JoinTable;
-import javax.persistence.JoinColumn;
 
 @Entity
 @Table (name= "user")
 public class User extends Model <User> implements Serializable {
 	private static final long serialVersionUID = 1L;
       
+	public static void main(String[] args) {
+		System.out.println(new User().clazz.find(1));
+	}
+	
 	public User () {
-//		this.permissions = new HashSet <> ();
-//		this.isActive = true;
+		this.permissions = new HashSet <> ();
 		this.creation_date = LocalDate.now();
 	}
       
@@ -43,36 +42,32 @@ public class User extends Model <User> implements Serializable {
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
 	private long id;
 
-	@Column
+	@Column(nullable= false, unique= true)
 	private String username;
 
-	@Column
+	@Column(nullable= false)
 	private String password;
 
 	@Column
 	private String email;
 
-	@Column
+	@Column(nullable= false)
 	private String first_name;
 
-	@Column
+	@Column(nullable= false)
 	private String last_name;
 
-	@Column
+	@Column(nullable= false)
 	private Boolean isMale; // https://www.youtube.com/watch?v=QJJYpsA5tv8
 
 	@Column
-	@Temporal (TemporalType.DATE)
 	private LocalDate creation_date;
 
-// Role instead	
-//	@ManyToMany(fetch= FetchType.EAGER)
-//	@JoinTable (
-//		name= "user_permission",
-//		joinColumns= @JoinColumn (name= "user_id", referencedColumnName= "id"),
-//		inverseJoinColumns= @JoinColumn (name= "permission_id", referencedColumnName= "id")
-//		)
-//	private Set <Permission> permissions;
+	@ElementCollection(fetch= FetchType.EAGER)
+	@Column(name= "name")
+	@CollectionTable(name= "permission")
+	@Enumerated(EnumType.STRING)
+	private Set <Permission> permissions;
 
 	public String getFormalFullName () {
 		return (isMale) ? "Mr. " +getFullName(): "Ms. " +getFullName();
@@ -146,6 +141,14 @@ public class User extends Model <User> implements Serializable {
 	public void setCreation_date(LocalDate creation_date) {
 		this.creation_date = creation_date;
 	}
+	
+	public Set<Permission> getPermissions() {
+		return permissions;
+	}
+
+	public void setPermissions(Set<Permission> permissions) {
+		this.permissions = permissions;
+	}
 
 	public static long getSerialversionuid() {
 		return serialVersionUID;
@@ -155,7 +158,7 @@ public class User extends Model <User> implements Serializable {
 	public String toString() {
 		return "User [id=" + id + ", username=" + username + ", password=" + password + ", email=" + email
 				+ ", first_name=" + first_name + ", last_name=" + last_name + ", isMale=" + isMale + ", creation_date="
-				+ creation_date + "]";
+				+ creation_date + ", permissions=" + permissions + "]";
 	}
-	
+
 }
