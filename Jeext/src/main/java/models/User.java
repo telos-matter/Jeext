@@ -24,6 +24,8 @@ import java.util.Set;
 
 import javax.persistence.FetchType;
 
+//TODO: remove non nullable form user db
+
 @Entity
 @Table (name= "user")
 public class User extends Model <User> implements Serializable {
