@@ -14,7 +14,7 @@ import models.core.Permission;
 public @interface GetMapping {
 
 	String value () default "";
-
+	
 	Access access () default Access.DEFAULT;
 	Permission [] permission () default {};
 	

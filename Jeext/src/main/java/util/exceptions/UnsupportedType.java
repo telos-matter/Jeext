@@ -1,4 +1,4 @@
-package controllers.controller.exceptions;
+package util.exceptions;
 
 public class UnsupportedType extends RuntimeException {
 	private static final long serialVersionUID = 1L;

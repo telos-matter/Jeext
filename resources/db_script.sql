@@ -14,9 +14,9 @@ CREATE TABLE user (
       username VARCHAR(32) NOT NULL UNIQUE,
       password VARCHAR(256) NOT NULL,
       email VARCHAR(64),
-      first_name VARCHAR(64) NOT NULL,
-      last_name VARCHAR(64) NOT NULL,
-      isMale BOOLEAN NOT NULL,
+      first_name VARCHAR(64),
+      last_name VARCHAR(64),
+      isMale BOOLEAN,
       creation_date DATE NOT NULL DEFAULT (CURRENT_DATE)
 );
 

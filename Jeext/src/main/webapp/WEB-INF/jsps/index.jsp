@@ -16,9 +16,7 @@
 	<body>
 	
 		<div style="background-image: url('${pageContext.request.contextPath}/resources/night_sky.png');">
-		  
 			<h1 style="color: beige; position: relative; top: 50%; height: auto">Hello ${name}!</h1>
-		
 		</div>
 	
 	</body>

@@ -9,11 +9,11 @@ import controllers.controller.exceptions.InvalidMappingMethodParam;
 import controllers.controller.exceptions.InvalidMappingMethodParamConsumer;
 import controllers.controller.exceptions.InvalidMappingMethodParamValidator;
 import controllers.controller.exceptions.InvalidParam;
-import controllers.controller.exceptions.UnsupportedType;
 import dao.Manager;
 import jakarta.servlet.http.HttpServletRequest;
 import models.core.Model;
 import util.Dates.DateValuesHolder;
+import util.exceptions.UnsupportedType;
 import util.Parser;
 
 import java.lang.reflect.Method;
@@ -22,23 +22,14 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-
-// NOTICE: Other annotations that don't apply are ignored
-// NOTICE: only class types no primitives
-// NOTICE: consumers should be commutative
-// NOTICE: only localdates for the time being
-// NOTICE: localdate comparisions are strict
-// NOTICE: default in string works on blank too
-// NOTICE: user can throw invaldparam
-
-// TODO: validator exception --> consumer
-
-// TODO ayo bruh recheck wch everything is aight in the consumers / validators
-
 public class Param {
 
 	private Class <?> type;
-	private boolean primitive; // NOTICE Anything other than a Model is considered primitive
+	/**
+	 * Primitive here means anything other than a Model.
+	 * Primitives themselves (int, float..) are not allowed
+	 */
+	private boolean primitive;
 	private String name;
 	private Validator [] validators;
 	private Consumer [] consumers;
@@ -238,7 +229,15 @@ public class Param {
 			
 		} else if (Model.class.isAssignableFrom(type)) {
 			
-			// TODO default with id
+			Default _default;
+			if ((_default = parameter.getAnnotation(Default.class)) != null) {
+				Long value;
+				if ((value = Parser.parseLong(_default.value())) == null) {
+					throw new InvalidMappingMethodParamConsumer(controller, method, parameter, _default.toString(), "Must be same type as the models id");
+				}
+				
+				_consumers.add(DefaultModelConsumer.GET(type, value));
+			}
 			
 		} else if (LocalDate.class.equals(type)) {
 			

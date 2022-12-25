@@ -7,11 +7,11 @@ import java.lang.reflect.Parameter;
 import java.util.Set;
 
 import controllers.controller.exceptions.InvalidMappingMethod;
-import controllers.controller.exceptions.UnsupportedType;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import models.User;
 import models.core.Permission;
+import util.exceptions.UnsupportedType;
 
 public class Mapping {
 

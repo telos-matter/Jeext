@@ -19,8 +19,8 @@ import controllers.controller.core.annotations.WebController;
 import controllers.controller.exceptions.InvalidInitMethod;
 import controllers.controller.exceptions.InvalidParam;
 import controllers.controller.exceptions.InvalidPath;
+import controllers.controller.exceptions.PathDuplicate;
 import controllers.controller.exceptions.UnhandledUserException;
-import controllers.controller.exceptions.UnsupportedType;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -28,6 +28,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import models.core.Permission;
+import util.exceptions.UnsupportedType;
 
 @WebServlet("/controllers/*")
 public final class Controller extends HttpServlet {
@@ -49,19 +50,7 @@ public final class Controller extends HttpServlet {
 	public static void writeSimpleText (HttpServletResponse response, Object object) {
 		writeSimpleText(response, "" +object);
 	}
-	
-    // TODO: wait why is classes in web-inf
-    // NOTICE: controllers should be on the root
-    // NOTICE: tomcat specific implementation
-	// NOTICE: ~very~ static implementation, no changing names of package nothing
-    // NOTICE: /resources & /controllers is taken
-	// NOTICE: use the path attr in request not uri
-	
-	// TODO: add auto resend params
-	
-	/**
-     * The -parameters option should be added to the compiler / or have the name annotation on every mapping parameter
-     */
+
    	public static void load (ServletContext context) {
    		loadControllers(context);
    		
@@ -141,6 +130,10 @@ public final class Controller extends HttpServlet {
    					
    					if (!path.startsWith("/") || path.startsWith("/resources") || path.startsWith("/controllers")) {
    						throw new InvalidPath(controller, method, path);
+   					}
+   					
+   					if (map.containsKey(path)) {
+   						throw new PathDuplicate(controller, method, path);
    					}
    					
    					map.put(path, new Mapping(controller, method, access, permissions));

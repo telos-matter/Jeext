@@ -16,7 +16,7 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.annotation.WebFilter;
 
-@WebFilter(urlPatterns = {"/*"}) // TODO: <-- is default value applicable here?
+@WebFilter({"/*"})
 public class Filter extends HttpFilter {
 	private static final long serialVersionUID = 1L;
 	

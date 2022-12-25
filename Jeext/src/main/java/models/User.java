@@ -24,17 +24,11 @@ import java.util.Set;
 
 import javax.persistence.FetchType;
 
-//TODO: remove non nullable form user db
-
 @Entity
 @Table (name= "user")
 public class User extends Model <User> implements Serializable {
 	private static final long serialVersionUID = 1L;
       
-	public static void main(String[] args) {
-		System.out.println(new User().clazz.find(1));
-	}
-	
 	public User () {
 		this.permissions = new HashSet <> ();
 		this.creation_date = LocalDate.now();
@@ -53,13 +47,13 @@ public class User extends Model <User> implements Serializable {
 	@Column
 	private String email;
 
-	@Column(nullable= false)
+	@Column()
 	private String first_name;
 
-	@Column(nullable= false)
+	@Column()
 	private String last_name;
 
-	@Column(nullable= false)
+	@Column()
 	private Boolean isMale; // https://www.youtube.com/watch?v=QJJYpsA5tv8
 
 	@Column

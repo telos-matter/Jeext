@@ -1,8 +1,13 @@
 package controllers.controller.core;
 
+import controllers.controller.core.annotations.WebController;
+
 public enum Access {
 
-	DEFAULT, // NOTICE: NOT TO BE USED
+	/**
+	 * Should not be used with {@link WebController}s
+	 */
+	DEFAULT,
 	
 	NONE,
 	ALL,

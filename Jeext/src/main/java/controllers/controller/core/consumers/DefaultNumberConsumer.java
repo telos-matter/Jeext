@@ -3,7 +3,7 @@ package controllers.controller.core.consumers;
 import java.util.HashMap;
 import java.util.Map;
 
-import controllers.controller.exceptions.UnsupportedType;
+import util.exceptions.UnsupportedType;
 
 public class DefaultNumberConsumer implements Consumer {
 
