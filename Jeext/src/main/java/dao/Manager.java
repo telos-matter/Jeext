@@ -69,6 +69,7 @@ public class Manager {
 		}
 	}
 	
+	// TODO: remove boolean return, make sure there is a proper way to the check, or mention it in doc
 	public static boolean delete (Class <?> clazz, Object key) {
 		if (DEBUG_MODE) {
 			System.out.println("Deleting: " + key +" for the class: " +clazz);
