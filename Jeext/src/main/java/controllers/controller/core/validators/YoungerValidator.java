@@ -5,13 +5,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import util.Dates;
-import util.Dates.DateValuesHolder;
+import util.Dates.PeriodHolder;
 
 public class YoungerValidator implements Validator {
 
-	private static final Map <DateValuesHolder, YoungerValidator> SET = new HashMap <> ();
+	private static final Map <PeriodHolder, YoungerValidator> SET = new HashMap <> ();
 	
-	public static YoungerValidator GET (DateValuesHolder value) {
+	public static YoungerValidator GET (PeriodHolder value) {
 		YoungerValidator validator = SET.get(value);
 		
 		if (validator == null) {
@@ -22,9 +22,9 @@ public class YoungerValidator implements Validator {
 		return validator;
 	}
 	
-	private DateValuesHolder value;
+	private PeriodHolder value;
 	
-	private YoungerValidator (DateValuesHolder value) {
+	private YoungerValidator (PeriodHolder value) {
 		this.value = value;
 	}
 

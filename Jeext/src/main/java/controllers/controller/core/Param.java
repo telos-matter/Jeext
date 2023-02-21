@@ -12,7 +12,7 @@ import controllers.controller.exceptions.InvalidParam;
 import dao.Manager;
 import jakarta.servlet.http.HttpServletRequest;
 import models.core.Model;
-import util.Dates.DateValuesHolder;
+import util.Dates.PeriodHolder;
 import util.exceptions.UnsupportedType;
 import util.Parser;
 
@@ -35,6 +35,8 @@ public class Param {
 	private Consumer [] consumers;
 	
 	public Param(Class <?> controller, Method method, Parameter parameter) {
+		// TODO: check periodholder, i removed returning null now its just exception
+		
 		this.type = parameter.getType();
 		
 		if (type.isPrimitive()) {
@@ -157,8 +159,8 @@ public class Param {
 
 			Younger younger;
 			if ((younger = parameter.getAnnotation(Younger.class)) != null) {
-				DateValuesHolder value;
-				if ((value = DateValuesHolder.parse(younger.value())) == null) {
+				PeriodHolder value;
+				if ((value = PeriodHolder.parse(younger.value())) == null) {
 					throw new InvalidMappingMethodParamValidator(controller, method, parameter, younger.toString(), "Must be a valid Date Values Holder");
 				}
 				
@@ -167,8 +169,8 @@ public class Param {
 
 			Older older;
 			if ((older = parameter.getAnnotation(Older.class)) != null) {
-				DateValuesHolder value;
-				if ((value = DateValuesHolder.parse(older.value())) == null) {
+				PeriodHolder value;
+				if ((value = PeriodHolder.parse(older.value())) == null) {
 					throw new InvalidMappingMethodParamValidator(controller, method, parameter, older.toString(), "Must be a valid Date Values Holder");
 				}
 				

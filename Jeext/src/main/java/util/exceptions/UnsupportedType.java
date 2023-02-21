@@ -1,10 +1,10 @@
 package util.exceptions;
 
-public class UnsupportedType extends RuntimeException {
+public class UnsupportedType extends FailedAssertion {
 	private static final long serialVersionUID = 1L;
 
 	public UnsupportedType (Object type) {
-		super ("Unsupported type passed: " +type +"\n\tFor DEBUGING");
+		super ("Unsupported type passed: " +type);
 	}
 	
 }

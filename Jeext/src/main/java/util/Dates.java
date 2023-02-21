@@ -2,7 +2,14 @@ package util;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
+import util.exceptions.FailedInit;
+
+/**
+ * <p>A Class that provides/facilitates {@link LocalDate} functionalities.
+ * <p>All methods tolerate <code>null</code> by design.
+ */
 public class Dates {
 
 	/**
@@ -10,64 +17,139 @@ public class Dates {
 	 */
 	public static final DateTimeFormatter DATE_FORMATER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	
-	public static boolean hasElapsed (LocalDate start, int years, int months, int days) {
+	/**
+	 * @return <code>true</code> if the given {@link LocalDate} plus 
+	 * the given periods (years, months and days) have
+	 * strictly elapsed (meaning it is now in the past), <code>false</code>
+	 * if not and <code>null</code> if the given {@link LocalDate} is <code>null</code>
+	 */
+	public static Boolean hasElapsed (LocalDate start, int years, int months, int days) {
+		if (start == null) {
+			return null;
+		}
 		return start.plusDays(days).plusMonths(months).plusYears(years).isBefore(LocalDate.now());
 	}
 	
-	public static boolean hasElapsed (LocalDate start, DateValuesHolder period) {
+	/**
+	 * Calls upon {@link #hasElapsed(LocalDate, int, int, int)}
+	 * with the given {@link PeriodHolder} values
+	 * @throws NullPointerException if the given {@link PeriodHolder} is <code>null</code>
+	 * @see #hasElapsed(LocalDate, int, int, int)
+	 */
+	public static Boolean hasElapsed (LocalDate start, PeriodHolder period) {
+		Objects.requireNonNull(period);
 		return hasElapsed(start, period.getYears(), period.getMonths(), period.getDays());
 	}
 	
-	public static boolean hasElapsed (LocalDate start, int years, int months) {
+	/**
+	 * Calls upon {@link #hasElapsed(LocalDate, int, int, int)}
+	 * with the given periods (years and months) and with days set
+	 * to zero
+	 * @see #hasElapsed(LocalDate, int, int, int)
+	 */
+	public static Boolean hasElapsed (LocalDate start, int years, int months) {
 		return hasElapsed(start, years, months, 0);
 	}
 	
-	public static boolean hasElapsed (LocalDate start, int years) {
+	/**
+	 * Calls upon {@link #hasElapsed(LocalDate, int, int, int)}
+	 * with the given period of years and with months and days set
+	 * to zero
+	 * @see #hasElapsed(LocalDate, int, int, int)
+	 */
+	public static Boolean hasElapsed (LocalDate start, int years) {
 		return hasElapsed(start, years, 0, 0);
 	}
 
-	public static boolean isWithinStrict (LocalDate x, LocalDate start, LocalDate end) {
-		return x.isAfter(start) && x.isBefore(end);
+	/**
+	 * @return <code>true</code> if the given {@link LocalDate} date is 
+	 * strictly after the given {@link LocalDate} beginning and strictly before
+	 * the given {@link LocalDate} end, <code>false</code> if not
+	 * and <code>null</code> if any of the parameters are <code>null</code>
+	 */
+	public static Boolean isWithinStrict (LocalDate date, LocalDate beginning, LocalDate end) {
+		if (date == null || beginning == null || end == null) {
+			return null;
+		}
+		return date.isAfter(beginning) && date.isBefore(end);
+	}
+
+	/**
+	 * Negates {@link #isWithinStrict(LocalDate, LocalDate, LocalDate)}
+	 * @see #isWithinStrict(LocalDate, LocalDate, LocalDate)
+	 */
+	public static Boolean isNotWithinStrict (LocalDate date, LocalDate beginning, LocalDate end) {
+		Boolean value = isWithinStrict(date, beginning, end);
+		return (value == null) ? null : !value;
 	}
 	
-	public static boolean isNotWithinStrict (LocalDate x, LocalDate start, LocalDate end) {
-		return ! isWithinStrict(x, start, end);
+	/**
+	 * Tests if the two date intervals strictly overlap one another. 
+	 * Strict here means that only having the same beginning dates
+	 * or only having the same end dates does not count as overlapping.
+	 * @return <code>true</code> if the date interval from 
+	 * the given {@link LocalDate} beginning_1 to the given {@link LocalDate}
+	 * end_1 overlaps the date interval from the given
+	 * {@link LocalDate} beginning_2 to the given {@link LocalDate} end_2,
+	 * <code>false</code> if not and <code>null</code> if any of the
+	 * parameters are <code>null</code> 
+	 */
+	public static Boolean overlapsStrict (LocalDate beginning_1, LocalDate end_1, LocalDate beginning_2, LocalDate end_2) {
+		if (beginning_1 == null || end_1 == null || beginning_2 == null || end_2 == null) {
+			return null;
+		}
+		return beginning_1.isBefore(end_2) && end_1.isAfter(beginning_2);
 	}
 	
-	public static boolean intersectsStrict (LocalDate start_1, LocalDate end_1, LocalDate start_2, LocalDate end_2) {
-		return start_1.isBefore(end_2) && end_1.isAfter(start_2);
+	/**
+	 * Negates {@link #overlapsStrict(LocalDate, LocalDate, LocalDate, LocalDate)}
+	 * @see #overlapsStrict(LocalDate, LocalDate, LocalDate, LocalDate)
+	 */
+	public static Boolean notOverlapsStrict (LocalDate beginning_1, LocalDate end_1, LocalDate beginning_2, LocalDate end_2) {
+		Boolean value = overlapsStrict(beginning_1, end_1, beginning_2, end_2);
+		return (value == null) ? null : !value;
 	}
 	
-	public static boolean notIntersectsStrict (LocalDate start_1, LocalDate end_1, LocalDate start_2, LocalDate end_2) {
-		return ! intersectsStrict(start_1, end_1, start_2, end_2);
-	}
-	
-	
-	public static class DateValuesHolder {
+	/**
+	 * <p>A class that represents a period of time in years, months and days
+	 * <p>Primarily created to easily group those values
+	 * <p>Use {@link #parse(String)} to parse a {@link String} into 
+	 * an instance of this class
+	 * <p>Negative values are permitted
+	 */
+	public static class PeriodHolder {
 		
 		private final int years, months, days;
 
-		public static DateValuesHolder parse (String s) {
-			if (s == null || s.length() != 10) {
-				return null;
+		/**
+		 * @param s	the {@link String} to be parsed. It must follow this format: 'y:m:d', 
+		 * with y, m and d being the number of years, months and days respectively.
+		 * Negative values are permitted
+		 * @return an instance of this class from the given {@link String}
+		 * @throws NullPointerException if the given {@link String} is <code>null</code>
+		 * @throws FailedInit if the given {@link String} doesn't follow the format
+		 */
+		public static PeriodHolder parse (String s) {
+			Objects.requireNonNull(s);
+			
+			int first_delimiter = s.indexOf(':');
+			int last_delimiter = s.lastIndexOf(':');
+			if (first_delimiter == -1 || first_delimiter == last_delimiter) {
+				throw new FailedInit(PeriodHolder.class, "The given String '" +s +"' does not follow the specified format");
 			}
 			
-			Integer years = Parser.parseInt(s.substring(0, 4));
-			Integer months = Parser.parseInt(s.substring(5, 7));
-			Integer days = Parser.parseInt(s.substring(8, 10));
+			Integer years = Parser.parseInt(s.substring(0, first_delimiter));
+			Integer months = Parser.parseInt(s.substring(first_delimiter +1, last_delimiter));
+			Integer days = Parser.parseInt(s.substring(last_delimiter +1, s.length()));
 			
-			if (years == null || months == null || days == null || years < 0 || months < 0 || days < 0) {
-				return null;
+			if (years == null || months == null || days == null) {
+				throw new FailedInit(PeriodHolder.class, "The given String '" +s +"' does not follow the specified format");
 			}
 			
-			return new DateValuesHolder(years, months, days);
+			return new PeriodHolder(years, months, days);
 		}
 		
-		public DateValuesHolder(int years, int months, int days) {
-			if (years < 0 || months < 0 || days < 0) {
-				throw new RuntimeException(String.format("Date values must be positive: %d-%d-%d", years, months, days));
-			}
-			
+		public PeriodHolder(int years, int months, int days) {
 			this.years = years;
 			this.months = months;
 			this.days = days;
@@ -96,8 +178,13 @@ public class Dates {
 			if (getClass() != other.getClass()) {
 				return false;
 			}
-			DateValuesHolder _other = (DateValuesHolder) other;
+			PeriodHolder _other = (PeriodHolder) other;
 			return days == _other.days && months == _other.months && years == _other.years;
+		}
+
+		@Override
+		public String toString() {
+			return "PeriodHolder [years=" + years + ", months=" + months + ", days=" + days + "]";
 		}
 	}
 	
