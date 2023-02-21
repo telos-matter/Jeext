@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
-import util.exceptions.FailedInit;
+import util.exceptions.FailedRequirement;
 
 /**
  * <p>A Class that provides/facilitates {@link LocalDate} functionalities.
@@ -127,7 +127,7 @@ public class Dates {
 		 * Negative values are permitted
 		 * @return an instance of this class from the given {@link String}
 		 * @throws NullPointerException if the given {@link String} is <code>null</code>
-		 * @throws FailedInit if the given {@link String} doesn't follow the format
+		 * @throws FailedRequirement if the given {@link String} doesn't follow the format
 		 */
 		public static PeriodHolder parse (String s) {
 			Objects.requireNonNull(s);
@@ -135,7 +135,7 @@ public class Dates {
 			int first_delimiter = s.indexOf(':');
 			int last_delimiter = s.lastIndexOf(':');
 			if (first_delimiter == -1 || first_delimiter == last_delimiter) {
-				throw new FailedInit(PeriodHolder.class, "The given String '" +s +"' does not follow the specified format");
+				throw new FailedRequirement("The given String '" +s +"' does not follow the specified format");
 			}
 			
 			Integer years = Parser.parseInt(s.substring(0, first_delimiter));
@@ -143,7 +143,7 @@ public class Dates {
 			Integer days = Parser.parseInt(s.substring(last_delimiter +1, s.length()));
 			
 			if (years == null || months == null || days == null) {
-				throw new FailedInit(PeriodHolder.class, "The given String '" +s +"' does not follow the specified format");
+				throw new FailedRequirement("The given String '" +s +"' does not follow the specified format");
 			}
 			
 			return new PeriodHolder(years, months, days);

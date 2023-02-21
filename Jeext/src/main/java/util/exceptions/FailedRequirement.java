@@ -9,7 +9,7 @@ public class FailedRequirement extends RuntimeException {
 	private static final long serialVersionUID = 1L;
 	
 	public FailedRequirement (String requirement) {
-		super ("Failed requirement: " +requirement);
+		super ("Failed requirement:\n\t" +requirement);
 	}
 
 }
