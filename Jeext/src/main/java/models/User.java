@@ -1,5 +1,6 @@
 package models;
 
+import java.io.Externalizable;
 import java.io.Serializable;
 import java.time.LocalDate;
 
@@ -8,6 +9,7 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Table;
 
+import controllers.controller.Filter;
 import models.core.Model;
 import models.core.Permission;
 import util.Strings;
@@ -24,11 +26,42 @@ import java.util.Set;
 
 import javax.persistence.FetchType;
 
+/**
+ * <p>An example class of a {@link Model}, and also
+ * a very common/needed class/table in most web application
+ * <p>This class is used in the {@link Filter} and thus
+ * it needs to stay even if it's not used (unless if you
+ * are going to remove all references and places where
+ * it's used/mentioned, the other components would still work
+ * fine without it if you do so).
+ * But keep in mind that, in case your web application doesn't need
+ * a user class or does not even use a DB, you can keep this class
+ * and the DAO part of Jeext and they won't be called/used if you don't
+ * use them
+ * <p>Add, remove and adjust this class to fit your needs, the
+ * <strong>only</strong> thing
+ * that needs to stay is the {@link #permissions} member, and its
+ * {@link #getPermissions()} method
+ * <p>Do remember however, in case you are using this class with your DB (
+ * or any other class that you are going to use with your DB), that
+ * it needs to be a Bean, i.e. it should:
+ * <ul>
+ * <li>Implement either {@link Serializable} or {@link Externalizable}
+ * <li>Have a no-arg constructor
+ * <li>Have public setter and getter methods for all its members
+ * <li>Make all its members private
+ * </ul>
+ */
 @Entity
 @Table (name= "user")
 public class User extends Model <User> implements Serializable {
 	private static final long serialVersionUID = 1L;
       
+	/**
+	 * It is a good idea to have default values
+	 * be in your {@link Model}s constructor, that way
+	 * you don't have to worry about them later on
+	 */
 	public User () {
 		this.permissions = new HashSet <> ();
 		this.creation_date = LocalDate.now();
@@ -59,22 +92,39 @@ public class User extends Model <User> implements Serializable {
 	@Column
 	private LocalDate creation_date;
 
+	/**
+	 * <p>{@link Permission}s that this
+	 * user has
+	 * <p>This member needs to stay
+	 */
 	@ElementCollection(fetch= FetchType.EAGER)
 	@Column(name= "name")
 	@CollectionTable(name= "permission")
 	@Enumerated(EnumType.STRING)
 	private Set <Permission> permissions;
 
+	/**
+	 * A functional method that returns
+	 * the formal name of this {@link User}
+	 */
 	public String getFormalFullName () {
-		return (isMale) ? "Mr. " +getFullName(): "Ms. " +getFullName();
+		if (isMale != null) {
+			return (isMale) ? "Mr. " +getFullName(): "Ms. " +getFullName();
+		} else {
+			return getFullName();
+		}
 	}
 	
+	/**
+	 * A functional method that returns
+	 * the full name of this {@link User}
+	 */
 	public String getFullName () {
 		return getLast_name() +" " +getFirst_name();
 	}
 
 	@Override
-	public long getId() {
+	public Object getId() {
 		return id;
 	}
 
@@ -138,6 +188,9 @@ public class User extends Model <User> implements Serializable {
 		this.creation_date = creation_date;
 	}
 	
+	/**
+	 * This method needs to stay
+	 */
 	public Set<Permission> getPermissions() {
 		return permissions;
 	}
