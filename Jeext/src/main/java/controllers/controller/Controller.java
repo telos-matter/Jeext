@@ -16,10 +16,10 @@ import controllers.controller.core.Mapping;
 import controllers.controller.core.annotations.GetMapping;
 import controllers.controller.core.annotations.PostMapping;
 import controllers.controller.core.annotations.WebController;
+import controllers.controller.core.util.BooleanEnum;
 import controllers.controller.exceptions.InvalidInitMethod;
+import controllers.controller.exceptions.InvalidMappingMethod;
 import controllers.controller.exceptions.InvalidParam;
-import controllers.controller.exceptions.InvalidPath;
-import controllers.controller.exceptions.PathDuplicate;
 import controllers.controller.exceptions.UnhandledUserException;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
@@ -28,8 +28,24 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import models.core.Permission;
+import util.exceptions.FailedRequirement;
+import util.exceptions.PassedNull;
+import util.exceptions.UnhandledException;
 import util.exceptions.UnsupportedType;
 
+// TODO make sure you switched all references from /resources to /res
+
+/**
+ * 
+ * 
+ * the brain behind all of this
+ * manages all of the mappings
+ * explain how it works
+ * link to github
+ * 
+ * @ author telos_matter
+ * @ version 2.0.0
+ */
 @WebServlet("/controllers/*")
 public final class Controller extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -39,18 +55,15 @@ public final class Controller extends HttpServlet {
 	private static Map <String, Mapping> getMappings;
 	private static Map <String, Mapping> postMappings;
 	
-	public static void writeSimpleText (HttpServletResponse response, String text) {
+	public static void writeSimpleText (HttpServletResponse response, Object text) {
 		try {
 			response.getWriter().write("<html><head></head><body><p>" +text +"</p></body></html>");
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new UnhandledUserException(e); // TODO, we sure about this?
 		}
 	}
 	
-	public static void writeSimpleText (HttpServletResponse response, Object object) {
-		writeSimpleText(response, "" +object);
-	}
-
+	// TODO specify how to add individual controllers
    	public static void load (ServletContext context) {
    		loadControllers(context);
    		
@@ -62,32 +75,32 @@ public final class Controller extends HttpServlet {
    	}
    	
     private static void loadControllers (ServletContext context) {
-    	controllers = loadPackage(
-		    			"controllers",
-		    			(new File (
-		    					String.format("%sWEB-INF%sclasses%scontrollers", context.getRealPath("/"), File.separator, File.separator))
-	    					).listFiles(
-	    							(File file) -> {return !(file.isDirectory() && file.getName().equals("controller"));}
-	    							));
+    	String root_path = String.format("%sWEB-INF%sclasses%scontrollers", context.getRealPath("/"), File.separator, File.separator);
+    	File root = new File (root_path);
+    	File [] content = root.listFiles(
+    			(File file) -> {
+    				return !(file.isDirectory() && file.getName().equals("controller"));
+    				}
+    			);
+    	
+    	controllers = loadPackage("controllers", content);
     }
     
     private static Set <Class <?>> loadPackage (String dir, File [] content) {
     	Set <Class <?>> classes = new HashSet <> ();
     	
-    	for (File element : content) {
-    		if (element.isFile() && element.getName().endsWith(".class")) {
-    			loadClassIntoSet(dir +'.' +element.getName(), classes); 
-    			
-    		} else if (element.isDirectory()) {
-    			classes.addAll(loadPackage(dir +'.' +element.getName(), element.listFiles()));
-    			
+    	for (File file : content) {
+    		if (file.isFile() && file.getName().endsWith(".class")) {
+    			loadClass(dir +'.' +file.getName(), classes); 
+    		} else if (file.isDirectory()) {
+    			classes.addAll(loadPackage(dir +'.' +file.getName(), file.listFiles()));
     		}
     	}
     	
     	return classes;
     }
     
-    private static void loadClassIntoSet (String name, Set <Class <?>> set) {
+    private static void loadClass (String name, Set <Class <?>> set) {
         try {
         	Class <?> clazz = Class.forName(name.substring(0, name.lastIndexOf('.')));
            
@@ -107,6 +120,7 @@ public final class Controller extends HttpServlet {
    					String path;
    					Access access;
    					Permission [] permissions;
+   					Boolean anyPermission;
    					
    					if (type == GetMapping.class) {
    						GetMapping mappingAnnotation = method.getAnnotation(GetMapping.class);
@@ -114,7 +128,8 @@ public final class Controller extends HttpServlet {
    						path = controllerAnnotation.value() +mappingAnnotation.value();
    						
    						access = (mappingAnnotation.access() == Access.DEFAULT)? controllerAnnotation.access() : mappingAnnotation.access();
-   						permissions = (mappingAnnotation.permission().length == 0)? controllerAnnotation.permission() : mappingAnnotation.permission();
+   						permissions = (mappingAnnotation.permissions().length == 0)? controllerAnnotation.permissions() : mappingAnnotation.permissions();
+   						anyPermission = (mappingAnnotation.anyPermission() == BooleanEnum.NULL)? controllerAnnotation.anyPermission().getBoolean() : mappingAnnotation.anyPermission().getBoolean();
    						
    					} else if (type == PostMapping.class) {
    						PostMapping mappingAnnotation = method.getAnnotation(PostMapping.class);
@@ -122,21 +137,23 @@ public final class Controller extends HttpServlet {
    						path = controllerAnnotation.value() +mappingAnnotation.value();
    						
    						access = (mappingAnnotation.access() == Access.DEFAULT)? controllerAnnotation.access() : mappingAnnotation.access();
-   						permissions = (mappingAnnotation.permission().length == 0)? controllerAnnotation.permission() : mappingAnnotation.permission();
-   						
+   						permissions = (mappingAnnotation.permissions().length == 0)? controllerAnnotation.permissions() : mappingAnnotation.permissions();
+   						anyPermission = (mappingAnnotation.anyPermission() == BooleanEnum.NULL)? controllerAnnotation.anyPermission().getBoolean() : mappingAnnotation.anyPermission().getBoolean();
+
    					} else {
    						throw new UnsupportedType(type);
    					}
    					
-   					if (!path.startsWith("/") || path.startsWith("/resources") || path.startsWith("/controllers")) {
-   						throw new InvalidPath(controller, method, path);
+   					if (!path.startsWith("/") || path.startsWith("/res") || path.startsWith("/controllers")) {
+   						throw new InvalidMappingMethod(controller, method, "The path '" +path + "' must always start with '/' and should NOT start with neither '/res' nor '/controllers'");
    					}
    					
    					if (map.containsKey(path)) {
-   						throw new PathDuplicate(controller, method, path);
+   						throw new InvalidMappingMethod(controller, method, "The path '" +path +"' already exists");
    					}
    					
-   					map.put(path, new Mapping(controller, method, access, permissions));
+   					Mapping mapping = new Mapping(controller, method, access, permissions, anyPermission);
+   					map.put(path, mapping);
    				}
    			}
    		}
@@ -150,35 +167,33 @@ public final class Controller extends HttpServlet {
 	}
 	
 	private static void initControllers () {
-		
    		for (Class <?> controller : controllers) {
    			try {
    				Method init = controller.getMethod("init", null);
    				
-   				if ((! Modifier.isPublic(init.getModifiers())) ||
-   						(! Modifier.isStatic(init.getModifiers())) ||
+   				int modifiers = init.getModifiers();
+   				if ((! Modifier.isPublic(modifiers)) ||
+   						(! Modifier.isStatic(modifiers)) ||
    						(! void.class.equals(init.getReturnType()))) {
-   					throw new InvalidInitMethod(controller, "Init should have the public and static modifiers, and a return type of void");
+   					throw new InvalidInitMethod(controller, "The method should be public, static and have a return type of void");
    				}
    				
    				if (init.getParameterCount() != 0) {
-   					throw new InvalidInitMethod(controller, "Init should expect no parameters");
+   					throw new InvalidInitMethod(controller, "The method should take no parameters");
    				}
    				
    				try {
    					init.invoke(null, null);
-   				} catch (IllegalAccessException e) {
-   					e.printStackTrace();
-   				} catch (IllegalArgumentException e) {
-   					e.printStackTrace();
    				} catch (InvocationTargetException e) {
    					throw new UnhandledUserException(e);
+   				} catch (IllegalAccessException | IllegalArgumentException e) {
+   					throw new UnhandledException(e);
    				}
    				
    			} catch (NoSuchMethodException e) {
    				continue;
    			} catch (SecurityException e) {
-   				e.printStackTrace();
+   				throw new UnhandledUserException(e);
    			}
    		}
     }
@@ -200,7 +215,7 @@ public final class Controller extends HttpServlet {
 			
 		} catch (Throwable cause) {
 			
-			if (cause instanceof InvalidParam) {
+			if (cause instanceof InvalidParam) { // TODO: make catch invalidParam then rest throw
 				response.sendError(HttpServletResponse.SC_BAD_REQUEST);
 			} else {
 				throw new UnhandledUserException(cause);

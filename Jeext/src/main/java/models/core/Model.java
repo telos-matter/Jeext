@@ -154,10 +154,10 @@ public abstract class Model <T extends Model <T>> {
 		}
 		
 		/**
-		 * Calls upon {@link Manager#query(Class, String)}
+		 * Calls upon {@link Manager#nativeQuery(Class, String)}
 		 */
-		public List <T> query (String query) {
-			return Manager.query(clazz(), query);
+		public List <T> nativeQuery (String query) {
+			return Manager.nativeQuery(clazz(), query);
 		}
 		
 	}

@@ -7,6 +7,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import controllers.controller.core.Access;
+import controllers.controller.core.util.BooleanEnum;
+import models.User;
 import models.core.Permission;
 
 @Retention(RUNTIME)
@@ -16,6 +18,7 @@ public @interface GetMapping {
 	String value () default "";
 	
 	Access access () default Access.DEFAULT;
-	Permission [] permission () default {};
+	Permission [] permissions () default {};
+	BooleanEnum anyPermission () default BooleanEnum.NULL;
 	
 }

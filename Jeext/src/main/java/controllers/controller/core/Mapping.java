@@ -4,13 +4,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
-import java.util.Set;
+import java.util.Collection;
+import java.util.Objects;
 
 import controllers.controller.exceptions.InvalidMappingMethod;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import models.User;
 import models.core.Permission;
+import util.exceptions.UnhandledException;
 import util.exceptions.UnsupportedType;
 
 public class Mapping {
@@ -19,10 +21,12 @@ public class Mapping {
 	private Param [] params;
 	private Access access;
 	private Permission [] permissions;
+	private Boolean anyPermission;
 	
-	public Mapping (Class <?> controller, Method method, Access access, Permission[] permissions) {
-		if ((! Modifier.isPublic(method.getModifiers())) ||
-				(! Modifier.isStatic(method.getModifiers())) ||
+	public Mapping (Class <?> controller, Method method, Access access, Permission[] permissions, Boolean anyPermission) {
+		int modifiers = method.getModifiers();
+		if ((! Modifier.isPublic(modifiers)) ||
+				(! Modifier.isStatic(modifiers)) ||
 				(! void.class.equals(method.getReturnType()))) {
    			throw new InvalidMappingMethod(controller, method, "Mappings should have the public and static modifiers, and a return type of void");
    		}
@@ -32,7 +36,7 @@ public class Mapping {
 		if ((parameters.length < 2) ||
 				(parameters[parameters.length -2].getType() != HttpServletRequest.class) ||
 				(parameters[parameters.length -1].getType() != HttpServletResponse.class)) {
-			throw new InvalidMappingMethod(controller, method, "Mappings should have the HttpServlet-Request/Response parameters as their last two parameters");
+			throw new InvalidMappingMethod(controller, method, "Mappings should have the HttpServletRequest and HttpServletResponse parameters as their last two parameters respectively");
 		}
 		
 		this.method = method;
@@ -43,11 +47,15 @@ public class Mapping {
 		}
 		
 		if (access == Access.DEFAULT) {
-			throw new InvalidMappingMethod(controller, method, "Access type can't be default on controllers!");
+			throw new InvalidMappingMethod(controller, method, "Access type can't be default in controllers!");
 		}
 		this.access = access;
 		
+		if (anyPermission == null && permissions.length != 0) {
+			throw new InvalidMappingMethod(controller, method, "Must specify an anyPermission value since permissions are set");
+		}
 		this.permissions = permissions;
+		this.anyPermission = anyPermission;
    	}
 	
 	public void invoke (HttpServletRequest request, HttpServletResponse response) throws Throwable {
@@ -62,12 +70,12 @@ public class Mapping {
 		
 		try {
 			method.invoke(null, parameters);
+			
 		} catch (InvocationTargetException exception) {
-
 			throw exception.getCause();
 					
-		} catch (IllegalAccessException | IllegalArgumentException  e) { 
-			e.printStackTrace(); 
+		} catch (IllegalAccessException | IllegalArgumentException  e) {
+			throw new UnhandledException(e);
 		} 
 	}
 	
@@ -87,22 +95,32 @@ public class Mapping {
 		return permissions.length != 0;
 	}
 	
-	public boolean hasPermission (Set <Permission> permissions) {
+	public boolean hasPermission (Collection <Permission> permissions) {
+		Objects.requireNonNull(permissions);
+		
 		if (this.permissions.length == 0) {
 			return true;
 			
 		} else if (permissions.size() == 0) {
 			return false;
 			
-		} else {	
+		} else if (this.anyPermission) {
 			for (Permission permission : this.permissions) {
 				if (permissions.contains(permission)) {
 					return true;
 				}
 			}
+			
+			return false;
+		} else {
+			for (Permission permission : this.permissions) {
+				if (!permissions.contains(permission)) {
+					return false;
+				}
+			}
+			
+			return true;
 		}
-		
-		return false;
 	}
 	
 }

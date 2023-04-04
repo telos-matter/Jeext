@@ -462,7 +462,7 @@ public class Manager {
 	 * @throws NullPointerException if any of the parameters are <code>null</code>
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T> List <T> query (Class <T> clazz, String query) {
+	public static <T> List <T> nativeQuery (Class <T> clazz, String query) {
 		Objects.requireNonNull(clazz);
 		Objects.requireNonNull(query);
 		

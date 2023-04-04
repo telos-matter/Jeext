@@ -1,5 +1,10 @@
 package util.exceptions;
 
+/**
+*
+* @see FailedAssertion
+*
+*/
 public class PassedNull extends FailedAssertion {
 	private static final long serialVersionUID = 1L;
 

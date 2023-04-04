@@ -322,7 +322,7 @@ public class Param {
 	}
 
 	public static Object getEntity (String name, Class <?> type, HttpServletRequest request) {
-		Long id = (Long) getParam(name, Long.class, request);
+		Long id = (Long) getParam(name, Long.class, request); // TODO ayay, something with objects instead. does this aslan work, cast null
 		if (id == null) {
 			return null;
 		} else {

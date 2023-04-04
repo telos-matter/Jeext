@@ -7,8 +7,17 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import controllers.controller.core.Access;
+import controllers.controller.core.util.BooleanEnum;
 import models.core.Permission;
 
+/**
+ * <p>A mapping for POST type request.
+ * <p>This should be contained inside
+ * a {@link WebController}
+ * 
+ * @author telos_matter
+ *
+ */
 @Retention(RUNTIME)
 @Target(METHOD)
 public @interface PostMapping {
@@ -16,6 +25,7 @@ public @interface PostMapping {
 	String value () default "";
 	
 	Access access () default Access.DEFAULT;
-	Permission [] permission () default {};
+	Permission [] permissions () default {};
+	BooleanEnum anyPermission () default BooleanEnum.NULL;
 	
 }
