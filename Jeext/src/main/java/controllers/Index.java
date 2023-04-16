@@ -3,8 +3,8 @@ package controllers;
 import java.io.IOException;
 
 import controllers.controller.core.annotations.*;
-import controllers.controller.core.validators.annotations.*;
-import controllers.controller.core.consumers.annotations.*;
+import controllers.controller.core.param.consumers.annotations.*;
+import controllers.controller.core.param.validators.annotations.*;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

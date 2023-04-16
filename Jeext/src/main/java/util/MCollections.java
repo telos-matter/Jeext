@@ -12,7 +12,7 @@ import java.util.Objects;
 import models.User;
 import models.core.Model;
 import util.exceptions.FailedRequirement;
-import util.exceptions.UnhandledException;
+import util.exceptions.UnhandledDevException;
 
 /**
  * <p>A class that facilitates working with {@link Model} typed {@link Collection}s.
@@ -161,7 +161,7 @@ public class MCollections {
 				return null;
 				
 			} catch (IllegalAccessException | IllegalArgumentException e) {
-				throw new UnhandledException(e);
+				throw new UnhandledDevException(e);
 			} catch (InvocationTargetException e) {
 				throw new RuntimeException(e);
 			}

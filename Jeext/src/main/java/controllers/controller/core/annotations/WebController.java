@@ -10,6 +10,7 @@ import java.lang.reflect.Modifier;
 
 import controllers.controller.Controller;
 import controllers.controller.core.Access;
+import controllers.controller.core.mapping.Mapping;
 import controllers.controller.core.util.BooleanEnum;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -31,7 +32,9 @@ import models.core.Permission;
  * can have the URL: "/library/" while the {@link GetMapping}s inside it will each
  * have for example "religion", "science", "novels".. This will result in that that each
  * one of those {@link GetMapping}s will have a final access URL of "/library/religion",
- * "/library/science"..
+ * "/library/science", and so on. Keep in mind that the user is never accessing a {@link WebController}, 
+ * instead it is accessing the {@link Mapping}s ({@link GetMapping}, {@link PostMapping}..)
+ * inside the {@link WebController}
  * <p>Note that the final URL should start with a "/" and should NOT start
  * with "/res" or "/controllers"
  * <p>A {@link WebController} can also define the default {@link Access} type
@@ -41,9 +44,11 @@ import models.core.Permission;
  * whether the {@link User} only needs
  * to have one of the required {@link Permission}s or all of them to access
  * the mapping (with the {@link #anyPermission()} field)
+ * <p>Note that a mapping can be independent of the {@link WebController}
+ * it resides in if it specifies that
  * <p>{@link WebController}s who need an init method should define one
  * that is named 'init' and has
- * the public and static {@link Modifier}s as well a {@link Void}
+ * the public and static {@link Modifier}s as well as {@link Void}
  * return type and must take no arguments. These init methods, 
  * unlike {@link HttpServlet#init()} method, are
  * all called at once when the first request is made to any of the {@link WebController}s.
@@ -100,10 +105,9 @@ public @interface WebController {
 	 * or all of them
 	 * <p>{@link BooleanEnum#TRUE} means any of them,
 	 * {@link BooleanEnum#FALSE} means all of them.
-	 * <p>{@link BooleanEnum#NULL} can only be used in the
-	 * mappings to have them default to the value that is specified here,
-	 * or in case no {@link Permission} is specified this can
-	 * take on any value
+	 * <p>{@link BooleanEnum#NULL} should be specified if
+	 * no {@link #permissions()} is specified. Or, in the
+	 * mappings, to have them default to the value that is provided here
 	 * <p>By default it is {@link BooleanEnum#TRUE}
 	 * 
 	 * @see BooleanEnum

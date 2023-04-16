@@ -28,4 +28,6 @@ public @interface PostMapping {
 	Permission [] permissions () default {};
 	BooleanEnum anyPermission () default BooleanEnum.NULL;
 	
+	boolean independent () default false;
+	
 }

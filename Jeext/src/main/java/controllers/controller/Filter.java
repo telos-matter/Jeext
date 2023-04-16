@@ -11,10 +11,10 @@ import java.io.IOException;
 import java.util.Map;
 
 import controllers.controller.core.Access;
-import controllers.controller.core.Mapping;
 import controllers.controller.core.annotations.GetMapping;
 import controllers.controller.core.annotations.PostMapping;
-import controllers.controller.core.validators.Validator;
+import controllers.controller.core.mapping.Mapping;
+import controllers.controller.core.param.validators.Validator;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
 import jakarta.servlet.Servlet;
