@@ -9,10 +9,10 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Table;
 
-import controllers.controller.Filter;
-import models.core.Model;
-import models.core.Permission;
-import util.Strings;
+import jeext.controller.Filter;
+import jeext.models_core.Model;
+import jeext.models_core.Permission;
+import jeext.util.Strings;
 
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
