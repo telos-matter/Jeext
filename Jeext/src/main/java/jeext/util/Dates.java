@@ -75,7 +75,8 @@ public class Dates {
 	}
 
 	/**
-	 * Negates {@link #isWithinStrict(LocalDate, LocalDate, LocalDate)}
+	 * Negates {@link #isWithinStrict(LocalDate, LocalDate, LocalDate)} but
+	 * preserves <code>null</code>
 	 * @see #isWithinStrict(LocalDate, LocalDate, LocalDate)
 	 */
 	public static Boolean isNotWithinStrict (LocalDate date, LocalDate beginning, LocalDate end) {
@@ -102,7 +103,8 @@ public class Dates {
 	}
 	
 	/**
-	 * Negates {@link #overlapsStrict(LocalDate, LocalDate, LocalDate, LocalDate)}
+	 * Negates {@link #overlapsStrict(LocalDate, LocalDate, LocalDate, LocalDate)} but
+	 * preserves <code>null</code>
 	 * @see #overlapsStrict(LocalDate, LocalDate, LocalDate, LocalDate)
 	 */
 	public static Boolean notOverlapsStrict (LocalDate beginning_1, LocalDate end_1, LocalDate beginning_2, LocalDate end_2) {
@@ -135,7 +137,7 @@ public class Dates {
 			int first_delimiter = s.indexOf(':');
 			int last_delimiter = s.lastIndexOf(':');
 			if (first_delimiter == -1 || first_delimiter == last_delimiter) {
-				throw new FailedRequirement("The given String '" +s +"' does not follow the specified format");
+				throw new FailedRequirement("The given String `" +s +"` does not follow the specified format");
 			}
 			
 			Integer years = Parser.parseInt(s.substring(0, first_delimiter));
@@ -143,10 +145,29 @@ public class Dates {
 			Integer days = Parser.parseInt(s.substring(last_delimiter +1, s.length()));
 			
 			if (years == null || months == null || days == null) {
-				throw new FailedRequirement("The given String '" +s +"' does not follow the specified format");
+				throw new FailedRequirement("The given String `" +s +"` does not follow the specified format");
 			}
 			
 			return new PeriodHolder(years, months, days);
+		}
+		
+		/**
+		 * <p>Tries to parse the {@link String} to a {@link PeriodHolder}
+		 * but returns <code>null</code> if it fails
+		 * <p>Different than {@link #parse(String)} in that it throws
+		 * no exceptions
+		 * 
+		 * @return	{@link PeriodHolder} representation of the passed {@link String}
+		 * or <code>null</code> if the parsing failed
+		 * 
+		 * @see #parse(String)
+		 */
+		public static PeriodHolder parseOrNull (String s) {
+			try {
+				return parse(s);
+			} catch (Exception e) {
+				return null;
+			}
 		}
 		
 		public PeriodHolder(int years, int months, int days) {
@@ -166,6 +187,11 @@ public class Dates {
 		public int getDays() {
 			return days;
 		}
+		
+		@Override
+		public int hashCode() {
+			return Objects.hash(days, months, years);
+		}
 
 		@Override
 		public boolean equals(Object other) {
@@ -175,11 +201,11 @@ public class Dates {
 			if (other == null) {
 				return false;
 			}
-			if (getClass() != other.getClass()) {
+			if (other instanceof PeriodHolder _other) {
+				return days == _other.days && months == _other.months && years == _other.years;
+			} else {
 				return false;
 			}
-			PeriodHolder _other = (PeriodHolder) other;
-			return days == _other.days && months == _other.months && years == _other.years;
 		}
 
 		@Override

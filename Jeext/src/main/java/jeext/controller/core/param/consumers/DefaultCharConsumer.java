@@ -25,7 +25,7 @@ public class DefaultCharConsumer implements Consumer {
 	}
 
 	@Override
-	public Object consume(Object object) {
+	public Object consume (Object object) {
 		return (object == null)? value : object;
 	}
 	

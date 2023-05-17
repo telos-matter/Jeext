@@ -25,6 +25,10 @@ public enum BooleanEnum {
 	 */
 	NULL;
 	
+	/**
+	 * What do you think this method does, huh?
+	 * @return	21
+	 */
 	public Boolean getBoolean() {
 		switch (this) {
 		case TRUE: return Boolean.TRUE;

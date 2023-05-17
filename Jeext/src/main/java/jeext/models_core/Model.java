@@ -24,8 +24,6 @@ import models.User;
  * this inconvenience can be overcome by simply having a reference to
  * the base class from the extending class, and/or vice versa. But it of course won't
  * allow for polymorphisme of methods and what not..
- * 
- * @author telos_matter
  */
 public abstract class Model <T extends Model <T>> {
 	
@@ -77,21 +75,30 @@ public abstract class Model <T extends Model <T>> {
 	}
 	
 	/**
-	 * Calls upon {@link Manager#insert(Object)}
+	 * <p>Calls upon {@link Manager#insert(Object)}
+	 * <p>This method can of course be {@link Override}en
+	 * in the actual {@link Model}s if they have some
+	 * different inserting process
 	 */
 	public void insert () {
 		Manager.insert(this);
 	}
 	
 	/**
-	 * Calls upon {@link Manager#update(Object)}
+	 * <p>Calls upon {@link Manager#update(Object)}
+	 * <p>This method can of course be {@link Override}en
+	 * in the actual {@link Model}s if they have some
+	 * different updating process
 	 */
 	public void update () {
 		Manager.update(this);
 	}
 	
 	/**
-	 * Calls upon {@link Manager#delete(Class, Object)}
+	 * <p>Calls upon {@link Manager#delete(Class, Object)}
+	 * <p>This method can of course be {@link Override}en
+	 * in the actual {@link Model}s if they have some
+	 * different deleting process
 	 */
 	public void delete () {
 		Manager.delete(this.clazz(), this.getId());
@@ -109,7 +116,7 @@ public abstract class Model <T extends Model <T>> {
 	/**
 	 * Facilitates class/table level DAO methods
 	 */
-	public class ClassAccessor {
+	protected class ClassAccessor {
 		
 		/**
 		 * Calls upon {@link Manager#selectAll(Class)}
@@ -167,7 +174,7 @@ public abstract class Model <T extends Model <T>> {
 	 * override the {@link Object#toString()} method in
 	 * every {@link Model}, as to get more detailed information
 	 * from the DAO functions
-	 * <p>Know that most Java IDEs have a functions that
+	 * <p>Know that most Java IDEs
 	 * can auto-generate this method for you
 	 * @see Manager
 	 */

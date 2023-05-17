@@ -11,8 +11,8 @@ import javax.persistence.Table;
 
 import jeext.controller.Filter;
 import jeext.models_core.Model;
-import jeext.models_core.Permission;
 import jeext.util.Strings;
+import models.permission.Permission;
 
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
@@ -33,7 +33,7 @@ import javax.persistence.FetchType;
  * it needs to stay even if it's not used (unless if you
  * are going to remove all references and places where
  * it's used/mentioned, the other components would still work
- * fine without it if you do so).
+ * fine without it if you do so. Same thing for {@link Permission}).
  * But keep in mind that, in case your web application doesn't need
  * a user class or does not even use a DB, you can keep this class
  * and the DAO part of Jeext and they won't be called/used if you don't

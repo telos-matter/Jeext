@@ -22,7 +22,8 @@ public class Strings {
 	}
 	
 	/**
-	 * Negates {@link #equals(String, String)}
+	 * Negates {@link #equals(String, String)} but
+	 * preserves <code>null</code>
 	 */
 	public static Boolean notEquals (String s1, String s2) {
 		Boolean result = equals(s1, s2);
@@ -39,7 +40,8 @@ public class Strings {
 	}
 
 	/**
-	 * Negates {@link #equalsIgnoreCase(String, String)}
+	 * Negates {@link #equalsIgnoreCase(String, String)} but
+	 * preserves <code>null</code>
 	 */
 	public static Boolean notEqualsIgnoreCase (String s1, String s2) {
 		Boolean result = equalsIgnoreCase(s1, s2);
@@ -55,7 +57,8 @@ public class Strings {
 	}
 	
 	/**
-	 * Negates {@link #isEmpty(String)}
+	 * Negates {@link #isEmpty(String)} but
+	 * preserves <code>null</code>
 	 */
 	public static Boolean isNotEmpty (String s) {
 		Boolean result = isEmpty(s);
@@ -71,7 +74,8 @@ public class Strings {
 	}
 	
 	/**
-	 * Negates {@link #isBlank(String)}
+	 * Negates {@link #isBlank(String)} but
+	 * preserves <code>null</code>
 	 */
 	public static Boolean isNotBlank (String s) {
 		Boolean result = isBlank(s);
@@ -91,7 +95,8 @@ public class Strings {
 	}
 	
 	/**
-	 * Negates {@link #length(String, int)}
+	 * Negates {@link #length(String, int)} but
+	 * preserves <code>null</code>
 	 */
 	public static Boolean notLength (String s, int length) {
 	    Boolean result = length(s, length);
@@ -104,15 +109,16 @@ public class Strings {
 	 * <code>false</code> if not, and <code>null</code> if the given
 	 * {@link String} is <code>null</code>
 	 */
-	public static boolean lengthWithin (String s, int min, int max) {
+	public static Boolean lengthWithin (String s, int min, int max) {
 		if (s == null) {
-			return false;
+			return null;
 		}
 		return s.length() >= min && s.length() <= max;
 	}
 
 	/**
-	 * Negates {@link #lengthWithin(String, int, int)}
+	 * Negates {@link #lengthWithin(String, int, int)} but
+	 * preserves <code>null</code>
 	 */
 	public static Boolean lengthNotWithin (String s, int min, int max) {
 	    Boolean result = lengthWithin(s, min, max);
@@ -277,7 +283,8 @@ public class Strings {
 	}
 	
 	/**
-	 * Negates {@link #matches(String, String, Integer)}
+	 * Negates {@link #matches(String, String, Integer)} but
+	 * preserves <code>null</code>
 	 */
 	public static Boolean notMatches (String regex, String input, Integer flags) {
 	    Boolean result = matches(regex, input, flags);

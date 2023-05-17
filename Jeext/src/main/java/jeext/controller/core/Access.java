@@ -1,11 +1,10 @@
 package jeext.controller.core;
 
 import jakarta.servlet.http.HttpSession;
-import jeext.controller.core.annotations.GetMapping;
-import jeext.controller.core.annotations.PostMapping;
 import jeext.controller.core.annotations.WebController;
-import jeext.models_core.Permission;
+import jeext.controller.core.annotations.WebMapping;
 import models.User;
+import models.permission.Permission;
 
 /**
  * <p>An {@link Enum} to specify who can
@@ -13,20 +12,24 @@ import models.User;
  * <p>This is different than {@link Permission}s
  * in that the specifications of who can access is
  * based on their identification, are they logged in or not
- * <p>Used in {@link WebController}s, {@link GetMapping}s and
- * {@link PostMapping}s
+ * <p>Used in {@link WebController}s and {@link WebMapping}s
+ * 
  * @see Permission
  * @see WebController
- * @see GetMapping
- * @see PostMapping
+ * @see WebMapping
  */
 public enum Access {
 
 	/**
-	 * Should not be used in {@link WebController}s. It is the
-	 * default value of {@link GetMapping}s and {@link PostMapping}s
+	 * Should never be used in {@link WebController}s.
+	 * It is the
+	 * default value of {@link WebMapping}s
 	 * to indicate that the access right to this web page or resource
-	 * is determined by the {@link WebController} they belong to
+	 * is determined by the {@link WebController} they belong to, in case
+	 * the {@link WebMapping} does inherit from the {@link WebController},
+	 * if that is not the case (if the {@link WebMapping} does not inherit from the
+	 * {@link WebController}) then this value cannot be used in
+	 * the {@link WebMapping}
 	 */
 	DEFAULT,
 	

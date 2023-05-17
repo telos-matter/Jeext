@@ -11,7 +11,7 @@ public class FlagConsumer implements Consumer {
 	private FlagConsumer () {}
 	
 	@Override
-	public Object consume(Object object) {
+	public Object consume (Object object) {
 		return (object == null)? Boolean.FALSE : (Boolean) object;
 	}
 

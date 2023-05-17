@@ -1,17 +1,17 @@
 package jeext.controller;
 
 import jakarta.servlet.http.HttpFilter;
+import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jeext.controller.core.Access;
 import jeext.controller.core.HttpMethod;
-import jeext.controller.core.annotations.GetMapping;
-import jeext.controller.core.annotations.PostMapping;
+import jeext.controller.core.annotations.WebMapping;
 import jeext.controller.core.mapping.Mapping;
 import jeext.controller.core.param.validators.Validator;
-import jeext.models_core.Permission;
 import models.User;
+import models.permission.Permission;
 
 import java.io.IOException;
 import java.util.Map;
@@ -25,7 +25,7 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.annotation.WebFilter;
 
 /**
- * <p>Main essential {@link HttpFilter} of Jeext, user may define
+ * <p>Main essential {@link HttpFilter} of {@link jeext}, user may define
  * additional {@link HttpFilter} as needed
  * <p>And of course may change anything as long as they know what they
  * are doing
@@ -46,9 +46,8 @@ public class Filter extends HttpFilter {
 	
 	/**
 	 * <p>The filter makes a distinction between requests made to
-	 * resources (such as images, css pages..) and requests
-	 * made to the mappings (either a {@link GetMapping}
-	 * or a {@link PostMapping})
+	 * resources (such as images, css pages..) or {@link HttpServlet} and requests
+	 * made to {@link WebMapping}s
 	 * <p>Requests made to resources, whose files should
 	 * be in the `res` folder under the root directory
 	 * (i.e. the `webapp` folder, sometimes also called
@@ -56,18 +55,19 @@ public class Filter extends HttpFilter {
 	 * the `res` resource-folder that contains
 	 * the persistence.xml file)(This is also
 	 * the reason why no mapping's URL should start
-	 * with "/res"), are <b>directly</b> served
+	 * with `/res`), are <b>directly</b> served
 	 * to the requester and require/do/have no check-up
 	 * on {@link Access}, {@link Permission}s or the
 	 * authenticity of the requester, and so, the `res`
 	 * folder should only contain unclassified files,
 	 * as that any one can access them.
-	 * <p>Requests made to the mappings on the
+	 * <p>The same thing happens to request made to {@link HttpServlet}s,
+	 * they are directly forwarded to the corresponding
+	 * {@link HttpServlet} and pass trough no check-ups.
+	 * <p>Requests made to the {@link WebMapping}s on the
 	 * other hand (which will be simply
 	 * referred to as requests
-	 * from now on, unless of course mentioned otherwise, as that
-	 * requests made to resources are simply and directly served to
-	 * the requester and pass trough no process)
+	 * from now on, unless of course mentioned otherwise)
 	 * pass trough check-ups, validating
 	 * the authenticity of the {@link User} trough
 	 * the {@link HttpSession}, making sure he
@@ -76,11 +76,11 @@ public class Filter extends HttpFilter {
 	 * then sent/delegated to the {@link Controller} to
 	 * call the appropriate {@link Mapping}
 	 * <hr>
-	 * <p>Requests also
-	 * receive two attributes; "path" which contains
+	 * <p>Requests (also those made to the {@link HttpServlet}s)
+	 * receive two attributes; `path` which contains
 	 * the URL or path that was requested minus the contextPath
 	 * meaning only the part of the URL that is defined
-	 * in the different mappings. And "contextPath"
+	 * in the different {@link WebMapping}s. And `contextPath`
 	 * which contains the contextPath of the application, it
 	 * is added as a shorthand for the usual
 	 * "${pageContext.request.contextPath}" used in the JSPs
@@ -94,16 +94,18 @@ public class Filter extends HttpFilter {
 	 * <p>The filter automatically sends the appropriate error
 	 * codes as follows:
 	 * <ul>
-	 * <li>The only requests allowed are those of the GET
-	 * and POST method, any other method will return
-	 * a {@link HttpServletResponse#SC_METHOD_NOT_ALLOWED} error
-	 * <li>If a request is made to a none existing mapping then
+	 * <li>If a request is made to a none existing {@link WebMapping}
+	 * or {@link HttpServlet} then
 	 * a {@link HttpServletResponse#SC_NOT_FOUND} error is sent
+	 * <li>If a request is made to an existing {@link WebMapping}
+	 * but with the wrong {@link HttpMethod}
+	 * a {@link HttpServletResponse#SC_METHOD_NOT_ALLOWED} error
+	 * is sent
 	 * <li>If the {@link User} does not validate the specified
 	 * {@link Access} right, or is <code>null</code> but some
 	 * {@link Permission}s are required then a {@link HttpServletResponse#SC_UNAUTHORIZED}
 	 * error is sent
-	 * <li>Lastly, here, if the requested {@link Mapping} requires
+	 * <li>Lastly, here, if the requested {@link WebMapping} requires
 	 * certain {@link Permission} but the {@link User} (who is not <code>null</code>)
 	 * does not satisfy them then a {@link HttpServletResponse#SC_FORBIDDEN} error
 	 * is sent
@@ -112,13 +114,13 @@ public class Filter extends HttpFilter {
 	 * error if the sent parameters do not validate the different {@link Validator}s
 	 * specified by the requested {@link Mapping}
 	 * <hr>
-	 * <p>The way requests are sent/delegated to the {@link Controller} {@link Servlet}
-	 * is that the filter appends the requested mapping's URL (after the
-	 * previously mentioned check-ups) to the end of "/controllers" which is 
-	 * the {@link Controller}'s URL ("/controllers/*") and forwards it, this is done
+	 * <p>The way requests are sent/delegated to the {@link Controller} {@link HttpServlet}
+	 * is that the filter appends the requested {@link WebMapping} URL (after the
+	 * previously mentioned check-ups) to the end of `/controller` which is 
+	 * the {@link Controller}'s URL (`/controllers/*`) and forwards it, this is done
 	 * to keep/allow the underlying resources {@link Servlet} capable of handling
-	 * requests made to it. This is also the reason why no {@link Mapping} should
-	 * have "/controllers" as a URL (although it would technically work,
+	 * requests made to it. This is also the reason why no {@link WebMapping} should
+	 * have `/controller` as a URL (although it would technically work,
 	 * it is made as such just to avoid any confusion)
 	 * <hr>
 	 * 

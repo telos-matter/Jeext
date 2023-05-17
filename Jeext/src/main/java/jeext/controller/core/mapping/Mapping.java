@@ -1,57 +1,54 @@
 package jeext.controller.core.mapping;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.Collection;
 import java.util.Objects;
 
-import jakarta.servlet.Servlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jeext.controller.Controller;
 import jeext.controller.core.Access;
-import jeext.controller.core.annotations.GetMapping;
-import jeext.controller.core.annotations.PostMapping;
+import jeext.controller.core.HttpMethod;
+import jeext.controller.core.Path;
 import jeext.controller.core.annotations.WebController;
+import jeext.controller.core.annotations.WebMapping;
 import jeext.controller.core.exceptions.InvalidParameter;
 import jeext.controller.core.mapping.exceptions.InvalidMappingMethod;
 import jeext.controller.core.param.Param;
-import jeext.models_core.Permission;
 import jeext.util.exceptions.UnhandledDevException;
 import jeext.util.exceptions.UnsupportedType;
 import models.User;
+import models.permission.Permission;
 
 /**
  * <p>A {@link Mapping} represents a way for an HTTP request
  * to access a specific resource or do some sort of treatment,
  * it is the equivalent of the {@link HttpServlet#doGet(HttpServletRequest, HttpServletResponse)}
  * and {@link HttpServlet#doPost(HttpServletRequest, HttpServletResponse)} methods
- * but for a specific URLs instead of a pattern of URLs
- * <p>A {@link Mapping} is nothing more than a 
- * public, static, void returning method that
- * resides in a {@link Class} annotated by the {@link WebController} annotation
- * which in turn (the {@link Class}) is in the {@link jeext.controllers} package. The {@link Mapping}
- * method should specify its type, and the fact that it is indeed
- * a {@link Mapping}, by being annotated by the
- * {@link GetMapping} or {@link PostMapping} annotation. And it is that
- * {@link Method} that gets invoked when an request is made to its {@link Mapping}
- * <p>A {@link Mapping} can define its own {@link Access} value and
- * {@link Permission}s needed to access it as well as whether all of
- * the permissions are required or only one of them. Or it can inherit the
- * values specified by its {@link WebController}
- * <p>A {@link Mapping} method should have its last two parameters be
+ * but for a specific URL (and a specific HTTP method) instead of a pattern of URLs
+ * <p>A {@link Mapping} is <i>nothing more</i> than a 
+ * public, static, void returning, {@link WebMapping} annotated {@link Method} that
+ * resides in a {@link Class} annotated by the {@link WebController} annotation. And
+ * because in order for a {@link Method} to be marked as a {@link Mapping}
+ * it should be annotated with the {@link WebMapping} {@link Annotation}, the terms
+ * WebMapping and Mapping are used indifferently because they represent the
+ * same thing more or less
+ * <p>A {@link Mapping} {@link Method} should have its last two parameters be
  * of the type {@link HttpServletRequest} and {@link HttpServletResponse} respectively
- * <p>A {@link Mapping} method can also have parameters that it is expecting
- * from the user as parameters of that method, read more about that in {@link Param}
+ * <p>A {@link Mapping} {@link Method} can also have parameters that it is expecting
+ * from the user's request as parameters of that method,
+ * read more about that in {@link Param}
+ * <p><b>Conception note:</b> a {@link Mapping} has no information about the actual
+ * {@link Path} it handles nor about the {@link HttpMethod} it takes care of. That
+ * job is left to the {@link Controller} and {@link MappingCollection}
  * 
- * MENTION mappings and webmappings are used indefrintely and so are controller and webcontroller
- * 
- * @see WebController
  * @see Param
- * @see GetMapping
- * @see PostMapping
- * 
+ * @see WebMapping
+ * @see WebController
  * @see #invoke(HttpServletRequest, HttpServletResponse)
  */
 public class Mapping {
@@ -61,9 +58,9 @@ public class Mapping {
 	 */
 	private Method method;
 	/**
-	 * An array of parameters ({@link Param}s) that this {@link Mapping}
+	 * An array of {@link Parameter}s ({@link Param}s) that this {@link Mapping}
 	 * {@link Method} has. This of course does not include the
-	 * {@link HttpServletRequest} and {@link HttpServletResponse} parameters
+	 * {@link HttpServletRequest} and {@link HttpServletResponse} {@link Parameter}s
 	 */
 	private Param [] params;
 	/**
@@ -82,18 +79,16 @@ public class Mapping {
 	
 	/**
 	 * The constructor that validates and creates {@link Mapping}s
-	 * @param controller
-	 * @param method
-	 * @param access
-	 * @param permissions
-	 * @param anyPermission
+	 * along side their {@link Param}s
+	 * 
+	 * @throws InvalidMappingMethod	If one of the requirements of a {@link Mapping} are not met
 	 */
-	public Mapping (Class <?> controller, Method method, Access access, Permission[] permissions, Boolean anyPermission) {
+	public Mapping (Class <?> webController, Method method, Access access, Permission[] permissions, Boolean anyPermission) {
 		int modifiers = method.getModifiers();
 		if ((! Modifier.isPublic(modifiers)) ||
 				(! Modifier.isStatic(modifiers)) ||
 				(! void.class.equals(method.getReturnType()))) {
-   			throw new InvalidMappingMethod(controller, method, "Mappings should be public, static and have a return type of void");
+   			throw new InvalidMappingMethod(webController, method, "Mappings should be public, static and have a return type of void");
    		}
 		
 		Parameter [] parameters = method.getParameters();
@@ -101,33 +96,44 @@ public class Mapping {
 		if ((parameters.length < 2) ||
 				(parameters[parameters.length -2].getType() != HttpServletRequest.class) ||
 				(parameters[parameters.length -1].getType() != HttpServletResponse.class)) {
-			throw new InvalidMappingMethod(controller, method, "Mappings should have the HttpServletRequest and HttpServletResponse parameters as their last two parameters respectively.");
+			throw new InvalidMappingMethod(webController, method, "Mappings should have the HttpServletRequest and HttpServletResponse parameters as their last two parameters respectively.");
 		}
 		
 		this.method = method;
 		
 		this.params = new Param [parameters.length -2];
 		for (int i = 0; i < this.params.length; i++) {
-			this.params[i] = new Param(controller, method, parameters[i]);
+			this.params[i] = new Param(webController, method, parameters[i]);
 		}
 		
 		if (access == Access.DEFAULT) {
-			throw new InvalidMappingMethod(controller, method, "Access type can't be `default` in the webController if the webMapping inherits from it, or in the webMapping if it does not inherit form the webController.");
+			throw new InvalidMappingMethod(webController, method, "Access type can't be `default` in the webController if the webMapping inherits from it, or in the webMapping if it does not inherit form the webController.");
 		}
 		this.access = access;
 		
 		if (anyPermission == null && permissions.length != 0) {
-			throw new InvalidMappingMethod(controller, method, "Must specify an anyPermission value since permissions are set.");
+			throw new InvalidMappingMethod(webController, method, "Must specify an anyPermission value since permissions are set.");
 		}
 		
 		if (anyPermission != null && permissions.length == 0) {
-			throw new InvalidMappingMethod(controller, method, "The value in anyPermission should be `null` since there are no permissions.");
+			throw new InvalidMappingMethod(webController, method, "The value in anyPermission should be `null` since there are no permissions.");
 		}
 		
 		this.permissions = permissions;
 		this.anyPermission = anyPermission;
    	}
 	
+	/**
+	 * <p>The method that prepares the {@link Param}s and calls
+	 * the underlying {@link Method}, i.e. this {@link Mapping}
+	 * for it respond to the HttpServletRequest
+	 * <p>The {@link Exception}s this method throw are left to be
+	 * handled accordingly by the {@link Controller}, which is the
+	 * only place from which this method is called
+	 * 
+	 * @throws InvalidParameter	if one of the {@link Param}s throws one to indicate that the request's parameters do not fulfill the requirements
+	 * @throws Throwable	if the underlying {@link Method} throws any {@link Exception}
+	 */
 	public void invoke (HttpServletRequest request, HttpServletResponse response) throws InvalidParameter, Throwable {
 		Object [] parameters = new Object [params.length +2];
 		
@@ -147,6 +153,12 @@ public class Mapping {
 		} 
 	}
 	
+	/**
+	 * @return	whether or not the {@link User}
+	 * can access this {@link Mapping} depending
+	 * on the {@link Access} value specified for
+	 * this {@link Mapping}
+	 */
 	public boolean canAccess (User user) {
 		switch (access) {
 		
@@ -159,10 +171,23 @@ public class Mapping {
 		}
 	}
 	
+	/**
+	 * @return	whether or not any {@link Permission}s
+	 * are needed to access this {@link Mapping}
+	 */
 	public boolean needsPermission () {
 		return permissions.length != 0;
 	}
 	
+	/**
+	 * @return	whether or not the passed {@link Permission}s
+	 * (those of a {@link User}) allow for access to this {@link Mapping}
+	 * , with regards
+	 * to the {@link Permission}s needed
+	 * and the {@link #anyPermission} value
+	 * 
+	 * @throws NullPointerException	if the passed {@link Collection} is <code>null</code>
+	 */
 	public boolean hasPermission (Collection <Permission> permissions) {
 		Objects.requireNonNull(permissions);
 		

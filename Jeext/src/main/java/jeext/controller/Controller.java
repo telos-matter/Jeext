@@ -7,15 +7,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,8 +22,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jeext.controller.core.Access;
 import jeext.controller.core.HttpMethod;
 import jeext.controller.core.Path;
-import jeext.controller.core.annotations.GetMapping;
-import jeext.controller.core.annotations.PostMapping;
 import jeext.controller.core.annotations.WebController;
 import jeext.controller.core.annotations.WebMapping;
 import jeext.controller.core.exceptions.InvalidInitMethod;
@@ -37,54 +29,53 @@ import jeext.controller.core.exceptions.InvalidParameter;
 import jeext.controller.core.mapping.Mapping;
 import jeext.controller.core.mapping.MappingCollection;
 import jeext.controller.core.mapping.exceptions.InvalidMappingMethod;
-import jeext.controller.core.param.validators.Validator;
 import jeext.controller.core.util.BooleanEnum;
 import jeext.controller.core.util.JMap;
 import jeext.controller.core.util.exceptions.UnhandledException;
-import jeext.models_core.Permission;
-import jeext.util.exceptions.FailedRequirement;
 import jeext.util.exceptions.PassedNull;
 import jeext.util.exceptions.UnhandledDevException;
-import jeext.util.exceptions.UnsupportedType;
+import models.permission.Permission;
 
-// TODO make sure you switched all references from /resources to /res
-
+// TODO maybe add file to params, and check if servlets do indeed work fine with the new allow servlet thing, along side their filter
 /**
  * 
  * 
- * the brain behind all of this
+ * the brain behind all of this, no not really the brain, they all do smth
  * manages all of the mappings
  * explain how it works
- * link to github
  * 
- * TODO make sure its all switched to /controller
- * 
- * @ author telos_matter
- * @ version 2.0.0
+ * MENTION dont shit and call a servlet /res and what not
+ * MENTION not really tomcat specific since its how war files are
+ * ^^^ put in jeext
  */
 @WebServlet("/controller/*")
 public final class Controller extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	
 	/**
+	 * <p>A {@link JMap} of all the URLs and their corresponding
+	 * {@link HttpServlet}
+	 * <p>Do note that only the {@link HttpServlet} that
+	 * use the {@link WebServlet} {@link Annotation}
+	 * are known and managed, do not use the "web.xml" file
+	 * to define your {@link HttpServlet}s
+	 */
+	private static JMap <Path, Class<?>> servlets;
+	
+	/**
 	 * <p>A {@link Set} of all of the {@link WebController}
 	 * defined by the user
 	 * <p>It is populated by {@link #loadFromRoot(ServletContext)}
-	 * TODO mention that it is immutable
+	 * <p>Once the set is populated it becomes immutable
 	 */
 	private static Set <Class <?>> webControllers;
 	
-	
 	/**
-	 * A {@link Map} that contains all of the {@link Mapping}s
-	 * that are of the {@link PostMapping} type, keyed by
-	 * their final URL ({@link PostMapping#value()})
+	 * A {@link JMap} of all the URLs and their corresponding
+	 * {@link MappingCollection}
 	 */
 	private static JMap <Path, MappingCollection> mappings;
-	
-	
-	// NOTICE: will only add webserlvets, dont use web.xml
-	private static JMap <Path, Class<?>> servlets;
+
 	
 	/**
 	 * <p>Utility function to write a quick and simple response to the user
@@ -93,40 +84,28 @@ public final class Controller extends HttpServlet {
 	 * @param response
 	 * @param text	{@link Object} to be casted to a {@link String} to be written
 	 * 
-	 * @throws IOException wrapped inside an {@link UnhandledException} if
+	 * @throws IOException if
 	 * the {@link HttpServletResponse}'s {@link PrintWriter} throws one
 	 */
-	public static void writeSimpleText (HttpServletResponse response, Object text) {
-		try {
-			response.getWriter().write("<!DOCTYPE html><html><head></head><body><p>" +text +"</p></body></html>");
-		} catch (IOException e) {
-			throw new UnhandledException(e);
-		}
+	public static void writeSimpleText (HttpServletResponse response, Object text) throws IOException {
+		response.getWriter().write("<!DOCTYPE html><html><head></head><body><p>" +text +"</p></body></html>");
 	}
 	
 	/**
 	 * <p>Called upon by the {@link Listener} when
 	 * the server first starts-up
-	 * <p>It loads all the {@link WebController}s found
-	 * in the {@link jeext.controllers} package trough the
+	 * <p>It loads all the {@link WebController}s and
+	 * {@link HttpServlet}s trough the
 	 * {@link #loadFromRoot(ServletContext)} method then
-	 * loads the individual {@link GetMapping}s and {@link PostMapping}s
+	 * loads the individual {@link WebMapping}s
 	 * from each one of the {@link WebController}
-	 * <p>To add additional <i>external</i> {@link WebController}
-	 * (i.e. those that are
-	 * not in the {@link jeext.controllers} package) simply
-	 * add them to {@link #webControllers} {@link Set}
-	 * after the {@link #loadFromRoot(ServletContext)}
-	 * method
 	 * <p>If for some reason the {@link #loadFromRoot(ServletContext)}
 	 * method does not work and is unable to load the {@link WebController}
 	 * or produces errors/exceptions, remove the {@link #loadFromRoot(ServletContext)}
-	 * method and replace its process manually by initializing
-	 * the {@link #webControllers} {@link Set} and adding to it
-	 * your {@link WebController}. If that is the case however, please
-	 * do contact the dev, thank you.
-	 * 
-	 * {@link #doPost(HttpServletRequest, HttpServletResponse)}
+	 * method and replace its process manually by adding your
+	 * {@link WebController}'s {@link Class}es to it. 
+	 * If that is the case however, please
+	 * do contact the {@link jeext} framework dev, thank you.
 	 * 
 	 * @author <a href="https://github.com/telos-matter">telos_matter</a> 
 	 */
@@ -157,9 +136,9 @@ public final class Controller extends HttpServlet {
    	}
    	
    	/**
-   	 * Reads the content of the `controllers` package
+   	 * Reads the content of the root package
    	 * and calls upon {@link #loadFromPackage(String, File[])}
-   	 * to load the {@link WebController} inside it
+   	 * to load the {@link WebController} and {@link HttpServlet} inside it
    	 * 
    	 * @see #load(ServletContext)
    	 */
@@ -177,10 +156,7 @@ public final class Controller extends HttpServlet {
     /**
      * Iterates over the content of a package
      * and calls upon {@link #loadClass(String, Set)}
-     * for every Java class file inside it
-     * 
-     * @return a {@link Set} of all the classes
-     * loaded by {@link #loadClass(String, Set)}
+     * for every Java class file inside it, recursively
      * 
      * @see #loadFromRoot(ServletContext)
      */
@@ -201,6 +177,7 @@ public final class Controller extends HttpServlet {
      * exists and
      * only adds it to the {@link Set} if it has
      * the {@link WebController} {@link Annotation}
+     * or the {@link HttpServlet} {@link Annotation}
 	 *
      * @see #loadFromPackage(String, File[])
      */
@@ -218,6 +195,10 @@ public final class Controller extends HttpServlet {
         } catch (ClassNotFoundException e) {}
     }
     
+    /**
+     * Loads the specified {@link HttpServlet}
+     * {@link Class} along side its URL patterns
+     */
     private static void loadServlet (Class <?> clazz) {
     	WebServlet webServlet = clazz.getAnnotation(WebServlet.class);
     	
@@ -237,16 +218,14 @@ public final class Controller extends HttpServlet {
     }
    	
     /**
-     * <p>Collects information necessary from every {@link Mapping}
-     * of the specified type
-     * (either {@link GetMapping} or {@link PostMapping})
+     * <p>Collects information necessary from every {@link WebMapping}
      * that exists in the {@link WebController}s, and passes
      * them on to {@link Mapping#Mapping(Class, Method, Access, Permission[], Boolean)}
      * to create a new {@link Mapping}
      * 
      * @throws InvalidMappingMethod if any of the {@link Mapping}s fails
      * a requirement ({@link Mapping}s' URL should start
-     * with `/` and should not start with neither `/controllers`
+     * with `/` and should not start with neither `/controller`
      * nor `/res`), or if a {@link Mapping}s' URL already exists
      * 
      * @see #load(ServletContext)
@@ -365,11 +344,11 @@ public final class Controller extends HttpServlet {
    		}
     }
 
-//	/**
-//	 * Called upon by the {@link Filter} when it forwards
-//	 * a request to the {@link Controller} to call the appropriate
-//	 * {@link Mapping}
-//	 */
+	/**
+	 * Automatically called upon by the {@link Filter} when it forwards
+	 * a request to the {@link Controller} and calls the appropriate
+	 * {@link Mapping}
+	 */
 	@Override
 	protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		Mapping mapping = (Mapping) request.getAttribute("mapping");
@@ -377,18 +356,18 @@ public final class Controller extends HttpServlet {
 	}
 	
 	/**
-	 * <p>Called upon by either {@link #doGet(HttpServletRequest, HttpServletResponse)}
-	 * or {@link #doPost(HttpServletRequest, HttpServletResponse)}
-	 * with the appropriate {@link Map} that contains the requested
+	 * <p>Called upon by the {@link #service(HttpServletRequest, HttpServletResponse)}
+	 * with the appropriate
 	 * {@link Mapping} 
 	 * <p>It then calls upon that {@link Mapping}s' {@link Mapping#invoke(HttpServletRequest, HttpServletResponse)}
-	 * <p>It also sends a {@link HttpServletResponse#SC_BAD_REQUEST}
-	 * error if any of the sent parameters are not validated
-	 * by their {@link Validator}
+	 * <p>It handles the {@link InvalidParameter}
+	 * by sending a {@link HttpServletResponse#SC_BAD_REQUEST}
+	 * error
 	 * 
 	 * @throws UnhandledException that wraps an {@link Exception}
 	 * if the {@link Mapping} throws any {@link Exception}s
-	 * that should be taken care of by the developer
+	 * that should be taken care of by the developer, which
+	 * would send a {@link HttpServletRequest#SC_INTERNAL_SERVER_ERROR} error
 	 * @throws IOException if {@link HttpServletResponse#sendError(int)} throws one
 	 */
 	private static void invokeMapping (Mapping mapping, HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -403,32 +382,45 @@ public final class Controller extends HttpServlet {
 			
 		} catch (Throwable cause) {
 			throw new UnhandledException(cause);
-			
 		}
 	}
 	
+	/**
+	 * @return	whether or not there exists
+	 * a {@link HttpServlet} that handles this
+	 * path
+	 */
 	public static boolean servletExists (String path) {
 		return servlets.containsKeyEquals(path);
 	}
 	
+	/**
+	 * @return	whether or not there exists
+	 * a {@link WebMapping} that handles this
+	 * path
+	 */
 	public static boolean mappingExists (String path) {
 		return mappings.containsKeyEquals(path);
 	}
 
 	/**
-	 * MENTION ofc throws null poiterExpection if there is no such path, and asln should only be used from filter, which checks before 
-	 * @param path
-	 * @param method
-	 * @return
+	 * @return	the {@link Mapping} that takes care of that
+	 * {@link Path} for that {@link HttpMethod}, or <code>null</code>
+	 * if there is none
 	 */
 	public static Mapping getMapping (String path, HttpMethod method) {
-		return mappings.getEquals(path).getMapping(method);
+		MappingCollection mappingCollection = mappings.getEquals(path);
+		if (mappingCollection != null) {
+			return mappingCollection.getMapping(method);
+		}
+		
+		return null;
 	}
 	
 	/**
-	 * Here just to provide access to the {@link WebController}s
+	 * <p>Here just to provide access to the {@link WebController}s
 	 * if needed
-	 * MENTION its immutable
+	 * <p>Keep in mind, the {@link Set} is immutable
 	 */
 	public static Set <Class <?>> getWebControllers() {
 		return webControllers;

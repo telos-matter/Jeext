@@ -25,7 +25,7 @@ public class MinStringValidator implements Validator {
 	}
 
 	@Override
-	public boolean validate(Object object) {
+	public boolean validate (Object object) {
 		return (object == null)? true : ((String) object).length() >= value;
 	}
 	

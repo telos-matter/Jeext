@@ -12,8 +12,8 @@ public class FailedRequirement extends RuntimeException {
 		super ("Failed requirement:\n\t" +requirement);
 	}
 	
-	public FailedRequirement (String requirement, String reason) {
-		this(requirement +"\n\t\t-> " +reason);
+	public FailedRequirement (String statment, String reason) {
+		this(statment +"\n\t\t-> " +reason);
 	}
 	
 }

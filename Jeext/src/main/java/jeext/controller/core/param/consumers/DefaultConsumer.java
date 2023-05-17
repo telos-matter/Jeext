@@ -25,7 +25,7 @@ public class DefaultConsumer implements Consumer {
 	}
 
 	@Override
-	public Object consume(Object object) {
+	public Object consume (Object object) {
 		if (object == null || ((String) object).isBlank()) {
 			return value;
 		} else {

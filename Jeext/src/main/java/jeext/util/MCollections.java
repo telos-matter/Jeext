@@ -17,7 +17,7 @@ import models.User;
 /**
  * <p>A class that facilitates working with {@link Model} typed {@link Collection}s.
  * <p>Unlike other utility classes, this one does NOT tolerate <code>null</code>.
- * <p>Note: The class is named
+ * <p><b>Note:</b> The class is named
  * MCollections (M for {@link Model}) to avoid mix-ups with
  * the Java {@link Collections} class that also provides utilities
  * for {@link Collection}s
@@ -69,13 +69,6 @@ public class MCollections {
 		return contains(collection, model) != null;
 	}
 
-	/**
-	 * Negates {@link #boolContains(Collection, Model)}
-	 */
-	public static <T extends Model <T>> boolean boolNotContains (Collection <T> collection, T model) {
-		return ! boolContains(collection, model);
-	}
-	
 	/**
 	 * Given a class which contains/has access to
 	 * a {@link Model}, this method checks
@@ -197,13 +190,6 @@ public class MCollections {
 	public static <T extends Model <T>, V> boolean boolContainsWithin (Collection <V> collection, T model, String get_method) {
 		return containsWithin(collection, model, get_method) != null;
 	}
-
-	/**
-	 * Negates {@link #boolContainsWithin(Collection, Model)}
-	 */
-	public static <T extends Model <T>, V> boolean boolNotContainsWithin (Collection <V> collection, T model, String get_method) {
-		return ! boolContainsWithin(collection, model, get_method);
-	}
 	
 	/**
 	 * Adds the given {@link Model} to the given {@link Collection}
@@ -238,7 +224,7 @@ public class MCollections {
 			if (model == null) {
 				continue;
 			}
-			if (boolContains(b, model) && boolNotContains(list, model)) {
+			if (boolContains(b, model) && !boolContains(list, model)) {
 				list.add(model);
 			}
 		}

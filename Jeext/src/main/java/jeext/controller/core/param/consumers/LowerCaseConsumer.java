@@ -13,7 +13,7 @@ public class LowerCaseConsumer implements Consumer {
 	private LowerCaseConsumer () {}
 	
 	@Override
-	public Object consume(Object object) {
+	public Object consume (Object object) {
 		return Strings.toLowerCase((String) object);
 	}
 

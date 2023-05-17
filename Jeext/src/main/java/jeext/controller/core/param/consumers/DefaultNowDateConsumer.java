@@ -13,7 +13,7 @@ public class DefaultNowDateConsumer implements Consumer {
 	private DefaultNowDateConsumer () {}
 	
 	@Override
-	public Object consume(Object object) {
+	public Object consume (Object object) {
 		return (object == null)? LocalDate.now() : object;
 	}
 

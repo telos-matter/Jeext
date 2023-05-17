@@ -1,9 +1,9 @@
 package jeext.controller.core;
 
-import jeext.controller.core.mapping.MappingCollection;
-
-// TODO the * version should also take care of /controllers/* == /controllers, not sure
-// TODO rn its just a simple string , but usefull in case later on i wanna make it a more complex url that allows * for example
+/**
+ * Simple version rn 
+ * TODO implement the * version, keep in mind /xxx/* == /xxx (Maybe not sure)
+ */
 public class Path {
 
 	private String path;
@@ -14,7 +14,6 @@ public class Path {
 	
 	@Override
 	public boolean equals(Object obj) {
-//		System.out.println("? " + this.path + " : " + obj);
 		if (obj instanceof String other) {
 			return this.path.equals(other);
 			

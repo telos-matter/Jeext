@@ -25,7 +25,7 @@ public class MinValidator implements Validator {
 	}
 
 	@Override
-	public boolean validate(Object object) {
+	public boolean validate (Object object) {
 		return (object == null)? true : ((Number) object).doubleValue() >= value;
 	}
 	

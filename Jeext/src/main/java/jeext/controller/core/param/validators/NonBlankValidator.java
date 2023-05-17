@@ -11,7 +11,7 @@ public class NonBlankValidator implements Validator {
 	private NonBlankValidator () {}
 	
 	@Override
-	public boolean validate(Object object) {
+	public boolean validate (Object object) {
 		return (object == null)? true : !((String) object).isBlank();
 	}
 

@@ -3,6 +3,7 @@ package jeext.controller.core.exceptions;
 import jeext.controller.core.param.Param;
 import jeext.controller.core.param.validators.Validator;
 
+// TODO document
 public class InvalidParameter extends RuntimeException {
 	private static final long serialVersionUID = 1L;
 

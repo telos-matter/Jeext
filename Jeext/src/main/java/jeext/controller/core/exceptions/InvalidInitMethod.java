@@ -17,8 +17,8 @@ public class InvalidInitMethod extends FailedRequirement {
 	 * doesn't validate the specified requirements
 	 * <p>Used mainly in {@link Controller#initControllers()}
 	 */
-	public InvalidInitMethod (Class <?> controller, String reason) {
-		super ("The init method of this webController `" +controller +"` is invalid", reason);
+	public InvalidInitMethod (Class <?> webController, String reason) {
+		super ("The init method of this webController `" +webController +"` is invalid", reason);
 
 	}
 	

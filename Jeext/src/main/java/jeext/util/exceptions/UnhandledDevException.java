@@ -10,6 +10,9 @@ import jeext.controller.core.util.exceptions.UnhandledException;
 public class UnhandledDevException extends FailedAssertion {
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * @see UnhandledDevException
+	 */
 	public UnhandledDevException (Exception e) {
 		super ("Unhandled exception: " +e);
 	}

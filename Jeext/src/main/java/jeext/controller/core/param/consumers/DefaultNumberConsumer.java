@@ -7,9 +7,9 @@ import jeext.util.exceptions.UnsupportedType;
 
 public class DefaultNumberConsumer implements Consumer {
 
-	private static final Map <Class <?>, Map <Double, DefaultNumberConsumer>> SET = new HashMap <> ();
+	private static final Map <Class <? extends Number>, Map <Double, DefaultNumberConsumer>> SET = new HashMap <> ();
 	
-	public static DefaultNumberConsumer GET (Class <?> type, Double value) {
+	public static DefaultNumberConsumer GET (Class <? extends Number> type, double value) {
 		Map <Double, DefaultNumberConsumer> SUB_SET = SET.get(type);
 		
 		if (SUB_SET == null) {
@@ -27,10 +27,10 @@ public class DefaultNumberConsumer implements Consumer {
 		return consumer;
 	}
 	
-	private Class <?> type;
+	private Class <? extends Number> type;
 	private double value;
 	
-	private DefaultNumberConsumer (Class <?> type, double value) {
+	private DefaultNumberConsumer (Class <? extends Number> type, double value) {
 		this.type = type;
 		this.value = value;
 	}

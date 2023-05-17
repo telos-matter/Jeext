@@ -13,6 +13,6 @@ public @interface Capitalize {
 	/**
 	 * Force capitlazation
 	 */
-	boolean value() default false; // Force capitalization
+	boolean value() default false;
 	
 }

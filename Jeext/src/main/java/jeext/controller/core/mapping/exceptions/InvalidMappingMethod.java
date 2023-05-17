@@ -19,8 +19,8 @@ public class InvalidMappingMethod extends FailedRequirement {
 	 * <p>Used mainly in {@link Controller#loadMappings(Class, Map)}
 	 * and {@link Mapping#Mapping(Class, Method, jeext.controller.core.Access, models.core.Permission[], Boolean)}
 	 */
-	public InvalidMappingMethod (Class <?> controller, Method method, String reason) {
-		super ("This mapping method `" +method +"` from this webController `" +controller+"` is invalid", reason);
+	public InvalidMappingMethod (Class <?> webController, Method method, String reason) {
+		super ("This mapping method `" +method +"` from this webController `" +webController+"` is invalid", reason);
 	}
 	
 }

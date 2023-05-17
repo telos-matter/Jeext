@@ -13,7 +13,7 @@ public class ForcedCapitalizeConsumer implements Consumer {
 	private ForcedCapitalizeConsumer () {}
 	
 	@Override
-	public Object consume(Object object) {
+	public Object consume (Object object) {
 		return Strings.forceCapitalize((String) object);
 	}
 

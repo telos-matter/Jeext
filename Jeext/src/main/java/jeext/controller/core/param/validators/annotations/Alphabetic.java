@@ -10,9 +10,6 @@ import java.lang.annotation.Target;
 @Target(PARAMETER)
 public @interface Alphabetic {
 
-	/**
-	 * Allow underscore
-	 */
-	boolean value () default false;
+	boolean allowUnderscore () default false;
 	
 }
