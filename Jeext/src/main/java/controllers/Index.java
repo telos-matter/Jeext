@@ -5,6 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
@@ -48,11 +49,11 @@ public class Index {
 //		System.out.println(parameter.getType().getComponentType());
 //		System.out.println(parameter.getType().isArray());
 //		System.out.println(parameter.getType().arrayType());
-		
-		int [] i = new int [10];
-		Object  o  = i;
-		i = (int[]) o;
-		Object [] j = (Object[]) o;
+//		
+//		int [] i = new int [10];
+//		Object  o  = i;
+//		i = (int[]) o;
+//		Object [] j = (Object[]) o;
 		
 //		List<Integer> l = List.of(1,2,69);
 //		method.invoke(null, l);
@@ -61,15 +62,24 @@ public class Index {
 //		LocalDateTime l = LocalDateTime.now();
 //		System.out.println(t);
 //		System.out.println(l);
+		// 2023-06-03T19:27:25.1 
+		// 2023-05-18T19:29:14.2 
+		System.out.println(LocalTime.parse("19:27:25.1"));
+		System.out.println(LocalDateTime.parse("2023-06-03T19:27:25.1"));
+		System.out.println(LocalDate.parse("2023-05-18").getMonth());
+//		Sysout
 	}
+	
 	
 	@WebMapping("/")
 	public static void hello (
 //				@Required(false) @Default("world") String name,
 //				@Required(false) @Default("12") Integer age,
 //				@Required(false) @Default("1") @Name("id") User user ,
+				  String a,
 				Integer age,
-				List<Integer> ages,
+//				List<Integer> ages,
+				Integer [] ages,
 //				List <Integer> ages_l,
 //				@Composed() User userr,
 				HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

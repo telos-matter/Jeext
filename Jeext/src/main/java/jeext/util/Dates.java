@@ -1,7 +1,6 @@
 package jeext.util;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 import jeext.util.exceptions.FailedRequirement;
@@ -12,11 +11,6 @@ import jeext.util.exceptions.FailedRequirement;
  */
 public class Dates {
 
-	/**
-	 * HTML format
-	 */
-	public static final DateTimeFormatter DATE_FORMATER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-	
 	/**
 	 * @return <code>true</code> if the given {@link LocalDate} plus 
 	 * the given periods (years, months and days) have

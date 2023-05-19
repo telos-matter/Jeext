@@ -1,13 +1,82 @@
 package jeext.util;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Objects;
 
 /**
  * <p>A class that facilitates parsing strings to different types.
  * <p>All methods tolerate <code>null</code> by design.
  */
 public class Parser {
+	
+	/**
+	 * <p>Parses the given {@link String} {@code s} as the
+	 * given {@code type}
+	 * <p>The allowed types are those whose
+	 * parse method exists in this class
+	 * 
+	 * @return the {@link String} {@code s} parsed to the specified
+	 * {@code type}, or <code>null</code> if {@code s} is <code>null</code>
+	 * or cannot be parsed to the {@code type}
+	 * 
+	 * @throws NullPointerException	if {@code type} is <code>null</code>
+	 * @throws IllegalArgumentException if the {@code type} is not supported
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T parse (String s, Class <T> type) {
+		Objects.requireNonNull(type);
+		
+		if (s == null) {
+			return null;
+		}
+		
+		Object parsed;
+		if (String.class.equals(type)) {
+			parsed = s;
+			
+		} else if (Boolean.class.equals(type)) {
+			parsed = parseBool(s);
+			
+		} else if (Integer.class.equals(type)) {
+			parsed = parseInt(s);
+			
+		} else if (Float.class.equals(type)) {
+			parsed = parseFloat(s);
+			
+		} else if (Double.class.equals(type)) {
+			parsed = parseDouble(s);
+			
+		} else if (Long.class.equals(type)) {
+			parsed = parseLong(s);
+			
+		} else if (LocalDate.class.equals(type)) {
+			parsed = parseDate(s);
+			
+		} else if (Character.class.equals(type)) {
+			parsed = parseChar(s);
+			
+		} else if (Short.class.equals(type)) {
+			parsed = parseShort(s);
+			
+		} else if (Byte.class.equals(type)) {
+			parsed = parseByte(s);
+			
+		} else if (LocalTime.class.equals(type)) {
+			parsed = parseTime(s);
+			
+		} else if (LocalDateTime.class.equals(type)) {
+			parsed = parseDateTime(s);
+			
+		} else {
+			throw new IllegalArgumentException("Unsupported type `" +type +"`");
+		}
+		
+		return (T) parsed;
+	}
 
 	/**
 	 * @return an {@link Integer} representation of
@@ -141,8 +210,10 @@ public class Parser {
 	}
 	
 	/**
-	 * Parses the given {@link String} as
-	 * a {@link LocalDate} with the HTML date format (yyyy-MM-dd)
+	 * <p>Parses the given {@link String} as
+	 * a {@link LocalDate}
+	 * <p>The default {@link DateTimeFormatter} format is
+	 * compatible with the HTML values
 	 * @return a {@link LocalDate} representation of the given {@link String},
 	 * or <code>null</code> if the given {@link String} is <code>null</code>
 	 * or cannot be represented as a {@link LocalDate}
@@ -152,9 +223,50 @@ public class Parser {
 			return null;
 		}
 		try {
-			return LocalDate.parse(s, Dates.DATE_FORMATER);
+			return LocalDate.parse(s);
 		} catch (DateTimeParseException  e) {
 			return null;
 		}
 	}
+	
+	/**
+	 * <p>Parses the given {@link String} as
+	 * a {@link LocalTime}
+	 * <p>The default {@link DateTimeFormatter} format is
+	 * compatible with the HTML values
+	 * @return a {@link LocalTime} representation of the given {@link String},
+	 * or <code>null</code> if the given {@link String} is <code>null</code>
+	 * or cannot be represented as a {@link LocalTime}
+	 */
+	public static LocalTime parseTime (String s) {
+		if (s == null) {
+			return null;
+		}
+		try {
+			return LocalTime.parse(s);
+		} catch (DateTimeParseException  e) {
+			return null;
+		}
+	}
+	
+	/**
+	 * <p>Parses the given {@link String} as
+	 * a {@link LocalDateTime}
+	 * <p>The default {@link DateTimeFormatter} format is
+	 * compatible with the HTML values
+	 * @return a {@link LocalTime} representation of the given {@link String},
+	 * or <code>null</code> if the given {@link String} is <code>null</code>
+	 * or cannot be represented as a {@link LocalTime}
+	 */
+	public static LocalDateTime parseDateTime (String s) {
+		if (s == null) {
+			return null;
+		}
+		try {
+			return LocalDateTime.parse(s);
+		} catch (DateTimeParseException  e) {
+			return null;
+		}
+	}
+	
 }
