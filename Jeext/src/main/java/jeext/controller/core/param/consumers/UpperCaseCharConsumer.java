@@ -13,8 +13,8 @@ public class UpperCaseCharConsumer implements Consumer {
 	private UpperCaseCharConsumer () {}
 	
 	@Override
-	public Object consume (Object object) {
-		return Strings.toUpperCase((Character) object);
+	public Object consume (Object character) {
+		return Strings.toUpperCase((Character) character);
 	}
 
 }

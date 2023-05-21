@@ -9,7 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
-import jeext.models_core.Model;
+import jeext.model.Model;
 import jeext.util.exceptions.FailedRequirement;
 import jeext.util.exceptions.UnhandledDevException;
 import models.User;

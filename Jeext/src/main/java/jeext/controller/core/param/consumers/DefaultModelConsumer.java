@@ -1,31 +1,12 @@
 package jeext.controller.core.param.consumers;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import jeext.dao.Manager;
-import jeext.models_core.Model;
 
 public class DefaultModelConsumer implements Consumer {
 
-	private static final Map <Class <?>, Map <Object, DefaultModelConsumer>> SET = new HashMap <> ();
 	
 	public static DefaultModelConsumer GET (Class <?> type, Object id) {
-		Map <Object, DefaultModelConsumer> SUB_SET = SET.get(type);
-		
-		if (SUB_SET == null) {
-			SUB_SET = new HashMap <> ();
-			SET.put(type, SUB_SET);
-		}
-		
-		DefaultModelConsumer consumer = SUB_SET.get(id);
-		
-		if (consumer == null) {
-			consumer = new DefaultModelConsumer (type, id);
-			SUB_SET.put(id, consumer);
-		}
-		
-		return consumer;
+		return new DefaultModelConsumer (type, id);
 	}
 	
 	private Class <?> type;

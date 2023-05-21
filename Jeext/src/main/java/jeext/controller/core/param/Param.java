@@ -8,12 +8,13 @@ import jeext.controller.core.mapping.exceptions.InvalidMappingMethodParam;
 import jeext.controller.core.mapping.exceptions.InvalidMappingMethodParamConsumer;
 import jeext.controller.core.mapping.exceptions.InvalidMappingMethodParamValidator;
 import jeext.controller.core.param.annotations.Name;
+import jeext.controller.core.param.composer.annotations.ModelId;
 import jeext.controller.core.param.consumers.*;
 import jeext.controller.core.param.consumers.annotations.*;
 import jeext.controller.core.param.validators.*;
 import jeext.controller.core.param.validators.annotations.*;
 import jeext.dao.Manager;
-import jeext.models_core.Model;
+import jeext.model.Model;
 import jeext.util.Dates.PeriodHolder;
 import jeext.util.exceptions.PassedNull;
 import jeext.util.exceptions.UnhandledDevException;
@@ -22,6 +23,7 @@ import jeext.util.Parser;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
@@ -33,6 +35,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -68,11 +71,15 @@ import java.util.stream.Stream;
  */
 public class Param {
 	
+	// MENTION by default required is on, but then if u use default its off automatically
+	// MENTION only models integer based id are allowed, no error now, but error when we try to retrieve, no UUID chief
+	// MENTION models should inherit from model to be considered a model, duh
+	// MENTION default consumer for string "cannot" be empty string, cuz it consideres emptry string and null same
 	// MENTION enums should we written as they are declared
+	
 	private static final Set <Class <? extends Annotation>> ALL_VALIDATORS = Set.of(After.class, Alphabetic.class, Alphanumeric.class, Before.class, Email.class, Max.class, Min.class, NonBlank.class, Older.class, Regex.class, Required.class, Younger.class);
 	private static final Set <Class <? extends Annotation>> ALL_CONSUMERS = Set.of(Capitalize.class, Default.class, LowerCase.class, UpperCase.class);
-	// TODO ADD CHECK THAT IT ISNT ACTUALLY A NUMBER OR MODEL, abstract yet can be used
-	// TODO add composer
+
 	private Class <?> type;
 	private Multiplicity multiplicity; 
 	/**
@@ -81,18 +88,12 @@ public class Param {
 	 */
 	private Kind kind;
 	
+	private Class <?> idType;
+	private IdKind idKind;
 	
 	private String name;
 	private Validator [] validators;
 	private Consumer [] consumers;
-	// MENTION by default required is on, but then if u use default its off automatically
-	// TODO check that only appropriate annotations are used on each type, like cant use min on model
-	// TODO if required then no default, if default then no required
-	// MENTION only models integer based id are allowed, no error now, but error when we try to retrieve, no UUID chief
-	// MENTION models should inherit from model to be considered a model, duh
-	// TODO default consumer for string cannot be empty string, cuz it consideres emptry string and null same
-	// TODO maybe add enums as a type?
-	// TODO default in numbers should not allow 3.2 in numbers
 	
 	public static void main(String[] args) {
 //		Class<?> c = Multiplicity.class;
@@ -121,15 +122,7 @@ public class Param {
 			throw new InvalidMappingMethodParam(webController, method, parameter, "Primitives aren't allowed, use their Object representation instead");
 		}
 		
-		if (!(String.class.equals(type) ||
-				Number.class.isAssignableFrom(type) ||
-				Model.class.isAssignableFrom(type) ||
-				Enum.class.isAssignableFrom(type) ||
-				LocalDate.class.equals(type) ||
-				Boolean.class.equals(type) ||
-				Character.class.equals(type) ||
-				LocalTime.class.equals(type) ||
-				LocalDateTime.class.equals(type))) {
+		if (!validType(type)) {
 			throw new InvalidMappingMethodParam(webController, method, parameter, "Unsuported type `" +type +"`");
 		}
 
@@ -142,10 +135,69 @@ public class Param {
 			kind = Kind.PRIMITIVE;
 		}
 		
+		if (kind == Kind.MODEL) {
+			Field [] fields = type.getDeclaredFields();
+			
+			int count = (int) Arrays
+					.stream(fields)
+					.filter((Field field) -> {return field.isAnnotationPresent(ModelId.class);})
+					.count();
+			if (count != 1) {
+				throw new InvalidMappingMethodParam(webController, method, parameter, "The Model has to indentify 1 ID field with the `" +ModelId.class.getSimpleName() +"` annotation");
+			}
+			
+			Field id = Arrays
+					.stream(fields)
+					.filter((Field field) -> {return field.isAnnotationPresent(ModelId.class);})
+					.toList()
+					.get(0);
+			
+			idType = id.getType();
+			if (!	(String.class.equals(idType) ||
+					Number.class.isAssignableFrom(idType) ||
+					Enum.class.isAssignableFrom(idType) ||
+					LocalDate.class.equals(idType) ||
+					Boolean.class.equals(idType) ||
+					Character.class.equals(idType) ||
+					LocalTime.class.equals(idType) ||
+					LocalDateTime.class.equals(idType))
+				||	(Number.class.equals(idType) ||
+					Enum.class.equals(idType))) {
+				throw new InvalidMappingMethodParam(webController, method, parameter, "Can't use this Model that has this type of ID `" +idType +"` since it's not supported as an ID type.");
+			}
+			
+			if (Enum.class.isAssignableFrom(idType)) {
+				idKind = IdKind.ENUM;
+			} else {
+				idKind = IdKind.PRIMITIVE;
+			}
+		}
+		
 		name = (parameter.isAnnotationPresent(Name.class))? parameter.getAnnotation(Name.class).value() : parameter.getName();
 
 		
 		processAnnotations(webController, method, parameter);
+	}
+	
+	public static boolean validType (Class <?> type) {
+		Objects.requireNonNull(type);
+		
+		if (!	(String.class.equals(type) ||
+				Number.class.isAssignableFrom(type) ||
+				Model.class.isAssignableFrom(type) ||
+				Enum.class.isAssignableFrom(type) ||
+				LocalDate.class.equals(type) ||
+				Boolean.class.equals(type) ||
+				Character.class.equals(type) ||
+				LocalTime.class.equals(type) ||
+				LocalDateTime.class.equals(type))
+			||	(Number.class.equals(type) ||
+				Model.class.equals(type) ||
+				Enum.class.equals(type))) {
+			return false;
+		} else {
+			return true;
+		}
 	}
 	
 	private void processAnnotations (Class <?> webController, Method method, Parameter parameter) {
@@ -432,7 +484,7 @@ public class Param {
 				}
 				
 				if (parameter.isAnnotationPresent(Capitalize.class)) {
-					_consumers.add(CapitalizeConsumer.GET(parameter.getAnnotation(Capitalize.class).value()));
+					_consumers.add(CapitalizeConsumer.GET(parameter.getAnnotation(Capitalize.class).forceCapitalize()));
 				}
 				
 				if (parameter.isAnnotationPresent(UpperCase.class)) {
@@ -626,7 +678,7 @@ public class Param {
 					value = getEnum(name, type, request);
 					break;
 				case MODEL:
-					value = getEntity(name, type, request);
+					value = getEntity(name, type, idType, idKind, request);
 					break;
 				default:
 					throw new UnsupportedType(kind);
@@ -643,7 +695,7 @@ public class Param {
 					value = getEnums(name, type, request);
 					break;
 				case MODEL:
-					value = getEntities(name, type, request);
+					value = getEntities(name, type, idType, idKind, request);
 					break;
 				default:
 					throw new UnsupportedType(kind);
@@ -660,7 +712,7 @@ public class Param {
 					value = getEnums(name, type, request);
 					break;
 				case MODEL:
-					value = getEntities(name, type, request);
+					value = getEntities(name, type, idType, idKind, request);
 					break;
 				default:
 					throw new UnsupportedType(kind);
@@ -707,32 +759,48 @@ public class Param {
 		return Arrays.asList((T []) array);
 	}
 	
-	private static <T> T getEntity (String name, Class <T> type, HttpServletRequest request) {
-		Object id = getParameter(name, Long.class, request); // TODO If you have a suggestion as to how easily retrieve the models id type hmu
-		if (id == null) {
-			return null;
+	private static <T, S> T getEntity (String name, Class <T> type, Class <S> idType, IdKind idKind, HttpServletRequest request) {
+		S id;
+		switch (idKind) {
+		case PRIMITIVE:
+			id = getParameter(name, idType, request);
+			break;
+		case ENUM:
+			id = getEnum(name, idType, request);
+			break;
+		default:
+			throw new UnsupportedType(idType);
 		}
 		
-		return Manager.find(type, id);
+		return parseModel(id, type);
 	}
 	
 	@SuppressWarnings("unchecked")
-	private static <T> T [] getEntities (String name, Class <T> type, HttpServletRequest request) {
-		Long [] ids = (Long []) getParameters(name, Long.class, request); // TODO Same thing
+	private static <T, S> T [] getEntities (String name, Class <T> type, Class <S> idType, IdKind idKind, HttpServletRequest request) {
+		S [] ids;
+		switch (idKind) {
+		case PRIMITIVE:
+			ids = (S []) getParameters(name, idType, request);
+			break;
+		case ENUM:
+			ids = (S []) getEnums(name, idType, request);
+			break;
+		default:
+			throw new UnsupportedType(idType);
+		}
+		
 		if (ids == null) {
 			return null;
 		}
 		
 		T [] entities = (T []) Array.newInstance(type, ids.length);
 		for (int i = 0; i < ids.length; i++) {
-			Object id = ids[i];
-			entities[i] = (id == null)? null : Manager.find(type, id);
+			entities[i] = parseModel(ids[i], type);
 		}
 		
 		return entities;
 	}
 	
-	@SuppressWarnings("unchecked")
 	private static <T> T getEnum (String name, Class <T> type, HttpServletRequest request) {
 		String constant = getParameter(name, String.class, request);
 		return (T) parseEnum(constant, type);
@@ -773,6 +841,14 @@ public class Param {
 		return parsedParameters;
 	}
 	
+	private static <T> T parseModel (Object id, Class <T> type) {
+		if (id == null) {
+			return null;
+		}
+		
+		return Manager.find(type, id);
+	}
+	
 	@SuppressWarnings("unchecked")
 	private static <T, S extends Enum <S>> T parseEnum (String constant, Class <T> type) {
 		if (constant == null) {
@@ -806,6 +882,11 @@ public class Param {
 		PRIMITIVE,
 		ENUM,
 		MODEL;
+	}
+	
+	private static enum IdKind {
+		PRIMITIVE,
+		ENUM;
 	}
 	
 }

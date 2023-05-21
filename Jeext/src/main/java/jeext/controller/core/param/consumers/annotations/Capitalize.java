@@ -10,9 +10,6 @@ import java.lang.annotation.Target;
 @Target(PARAMETER)
 public @interface Capitalize {
 
-	/**
-	 * Force capitlazation
-	 */
-	boolean value() default false;
+	boolean forceCapitalize() default false;
 	
 }

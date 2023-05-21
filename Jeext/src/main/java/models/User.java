@@ -10,7 +10,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.Table;
 
 import jeext.controller.Filter;
-import jeext.models_core.Model;
+import jeext.model.Model;
 import jeext.util.Strings;
 import models.permission.Permission;
 

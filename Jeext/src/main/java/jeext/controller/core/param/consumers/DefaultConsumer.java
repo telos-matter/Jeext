@@ -1,21 +1,9 @@
 package jeext.controller.core.param.consumers;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class DefaultConsumer implements Consumer {
 
-	private static final Map <Object, DefaultConsumer> SET = new HashMap <> ();
-	
 	public static DefaultConsumer GET (Object value) {
-		DefaultConsumer consumer = SET.get(value);
-		
-		if (consumer == null) {
-			consumer = new DefaultConsumer (value);
-			SET.put(value, consumer);
-		}
-		
-		return consumer;
+		return new DefaultConsumer (value);
 	}
 	
 	private Object value;

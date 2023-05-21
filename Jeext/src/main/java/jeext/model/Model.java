@@ -1,4 +1,4 @@
-package jeext.models_core;
+package jeext.model;
 
 import java.util.List;
 import java.util.UUID;
