@@ -26,8 +26,8 @@ public class AfterTimeValidator implements Validator {
 	}
 
 	@Override
-	public boolean validate(Object object) {
-		return (object == null)? true : ((LocalTime) object).isAfter(value);
+	public boolean validate (Object localTime) {
+		return (localTime == null)? true : ((LocalTime) localTime).isAfter(value);
 	}
 	
 }

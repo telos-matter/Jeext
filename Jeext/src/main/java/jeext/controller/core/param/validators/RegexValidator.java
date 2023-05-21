@@ -26,8 +26,8 @@ public class RegexValidator implements Validator {
 	}
 
 	@Override
-	public boolean validate(Object object) {
-		return (object == null)? true : value.matcher((String) object).find();
+	public boolean validate (Object string) {
+		return (string == null)? true : value.matcher((String) string).find();
 	}
 	
 }

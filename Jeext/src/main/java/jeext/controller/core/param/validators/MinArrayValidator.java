@@ -2,17 +2,17 @@ package jeext.controller.core.param.validators;
 
 import java.util.Arrays;
 
-public class MaxArrayValidator implements Validator {
+public class MinArrayValidator implements Validator {
 
-	public static MaxArrayValidator GET (Class <?> type, int value, boolean strict) {
-		return new MaxArrayValidator (type, value, strict);
+	public static MinArrayValidator GET (Class <?> type, int value, boolean strict) {
+		return new MinArrayValidator (type, value, strict);
 	}
 	
 	private Class <?> type;
 	private int value;
 	private boolean strict;
 	
-	private MaxArrayValidator (Class <?> type, int value, boolean strict) {
+	private MinArrayValidator (Class <?> type, int value, boolean strict) {
 		this.type = type;
 		this.value = value;
 		this.strict = strict;
@@ -29,7 +29,7 @@ public class MaxArrayValidator implements Validator {
 		
 		int count = (int) Arrays.stream(_array).filter(e -> e != null).count();
 		
-		return (strict)? count < value : count <= value;
+		return (strict)? count > value : count >= value;
 	}
 	
 }

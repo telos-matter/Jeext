@@ -15,6 +15,7 @@ import jeext.controller.core.param.validators.annotations.*;
 import jeext.dao.Manager;
 import jeext.models_core.Model;
 import jeext.util.Dates.PeriodHolder;
+import jeext.util.exceptions.PassedNull;
 import jeext.util.exceptions.UnhandledDevException;
 import jeext.util.exceptions.UnsupportedType;
 import jeext.util.Parser;
@@ -47,15 +48,17 @@ import java.util.stream.Stream;
  * <p>The allowed types are: 
  * <ul>
  * <li>{@link Model}
- * <li>{@link Number}s ({@link Integer}, {@link Float}, {@link Double}, {@link Long}, {@link Short}, {@link Byte})
- * <li>{@link Boolean}
- * <li>{@link Character}
+ * <li>{@link Number} ({@link Integer}, {@link Float}, {@link Double}, {@link Long}, {@link Short}, {@link Byte})
+ * <li>{@link String}
+ * <li>{@link Enum}
  * <li>{@link LocalDate}
  * <li>{@link LocalTime}
  * <li>{@link LocalDateTime}
+ * <li>{@link Boolean}
+ * <li>{@link Character}
  * </ul>
  * And {@link Array}s and {@link List}s of the above mentioned types.
- * (Primitives aren't allowed, use their object representation instead)
+ * Primitives aren't allowed, use their object representation instead
  * <p>These {@link Param}s can be annotated with 3 types of {@link Annotation}
  * and 1 additional one for {@link Model}s only, these {@link Annotation}s are:
  * <ul>
@@ -65,9 +68,10 @@ import java.util.stream.Stream;
  */
 public class Param {
 	
+	// MENTION enums should we written as they are declared
 	private static final Set <Class <? extends Annotation>> ALL_VALIDATORS = Set.of(After.class, Alphabetic.class, Alphanumeric.class, Before.class, Email.class, Max.class, Min.class, NonBlank.class, Older.class, Regex.class, Required.class, Younger.class);
-	private static final Set <Class <? extends Annotation>> ALL_CONSUMERS = Set.of(Capitalize.class, Default.class, Flag.class, LowerCase.class, UpperCase.class);
-	
+	private static final Set <Class <? extends Annotation>> ALL_CONSUMERS = Set.of(Capitalize.class, Default.class, LowerCase.class, UpperCase.class);
+	// TODO ADD CHECK THAT IT ISNT ACTUALLY A NUMBER OR MODEL, abstract yet can be used
 	// TODO add composer
 	private Class <?> type;
 	private Multiplicity multiplicity; 
@@ -75,7 +79,7 @@ public class Param {
 	 * Primitive here means anything other than a Model.
 	 * Primitives themselves (int, float..) are not allowed
 	 */
-	private boolean primitive;
+	private Kind kind;
 	
 	
 	private String name;
@@ -86,9 +90,16 @@ public class Param {
 	// TODO if required then no default, if default then no required
 	// MENTION only models integer based id are allowed, no error now, but error when we try to retrieve, no UUID chief
 	// MENTION models should inherit from model to be considered a model, duh
-	// TODO matches validator throws regex error
 	// TODO default consumer for string cannot be empty string, cuz it consideres emptry string and null same
-	// TODO: check periodholder, i removed returning null now its just exception
+	// TODO maybe add enums as a type?
+	// TODO default in numbers should not allow 3.2 in numbers
+	
+	public static void main(String[] args) {
+//		Class<?> c = Multiplicity.class;
+//		Arrays.stream(c.getEnumConstants()).forEach(System.out::println);
+//		System.out.println(c.getEnumConstants()[0] == Multiplicity.SINGLE);
+//		System.out.println(getEnum(null, Multiplicity.class, null));
+	}
 	
 	public Param (Class <?> webController, Method method, Parameter parameter) {
 		type = parameter.getType();
@@ -113,6 +124,7 @@ public class Param {
 		if (!(String.class.equals(type) ||
 				Number.class.isAssignableFrom(type) ||
 				Model.class.isAssignableFrom(type) ||
+				Enum.class.isAssignableFrom(type) ||
 				LocalDate.class.equals(type) ||
 				Boolean.class.equals(type) ||
 				Character.class.equals(type) ||
@@ -120,9 +132,16 @@ public class Param {
 				LocalDateTime.class.equals(type))) {
 			throw new InvalidMappingMethodParam(webController, method, parameter, "Unsuported type `" +type +"`");
 		}
+
 		
+		if (Model.class.isAssignableFrom(type)) {
+			kind = Kind.MODEL;
+		} else if (Enum.class.isAssignableFrom(type)) {
+			kind = Kind.ENUM;
+		} else {
+			kind = Kind.PRIMITIVE;
+		}
 		
-		primitive = !Model.class.isAssignableFrom(type);
 		name = (parameter.isAnnotationPresent(Name.class))? parameter.getAnnotation(Name.class).value() : parameter.getName();
 
 		
@@ -166,11 +185,7 @@ public class Param {
 						throw new InvalidMappingMethodParamValidator(webController, method, parameter, min, "Must be a positive or null integer value");
 					}
 					
-					if (min.strict()) {
-						_validators.add(MinStrictStringValidator.GET(value));
-					} else {
-						_validators.add(MinStringValidator.GET(value));
-					}
+					_validators.add(MinStringValidator.GET(value, min.strict()));
 				}
 				
 				Max max = parameter.getAnnotation(Max.class);
@@ -180,11 +195,7 @@ public class Param {
 						throw new InvalidMappingMethodParamValidator(webController, method, parameter, max, "Must be a positive or null integer value");
 					}
 					
-					if (max.strict()) {
-						_validators.add(MaxStrictStringValidator.GET(value));
-					} else {
-						_validators.add(MaxStringValidator.GET(value));
-					}
+					_validators.add(MaxStringValidator.GET(value, max.strict()));
 				}
 				
 				Regex regex = parameter.getAnnotation(Regex.class);
@@ -224,20 +235,12 @@ public class Param {
 				
 				Min min = parameter.getAnnotation(Min.class);
 				if (min != null) {
-					if (min.strict()) {
-						_validators.add(MinStrictValidator.GET(min.value()));
-					} else {
-						_validators.add(MinValidator.GET(min.value()));
-					}
+					_validators.add(MinValidator.GET(min.value(), min.strict()));
 				}
 				
 				Max max = parameter.getAnnotation(Max.class);
 				if (max != null) {
-					if (max.strict()) {
-						_validators.add(MaxStrictValidator.GET(max.value()));
-					} else {
-						_validators.add(MaxValidator.GET(max.value()));
-					}
+					_validators.add(MaxValidator.GET(max.value(), max.strict()));
 				}
 				
 			} else if (Model.class.isAssignableFrom(type)) {
@@ -255,7 +258,7 @@ public class Param {
 						throw new InvalidMappingMethodParamValidator(webController, method, parameter, before, "Must be a valid LocalDate");
 					}
 					
-					_validators.add(BeforeValidator.GET(value));
+					_validators.add(BeforeDateValidator.GET(value));
 				}
 				
 				After after = parameter.getAnnotation(After.class);
@@ -265,7 +268,7 @@ public class Param {
 						throw new InvalidMappingMethodParamValidator(webController, method, parameter, after, "Must be a valid LocalDate");
 					}
 					
-					_validators.add(AfterValidator.GET(value));
+					_validators.add(AfterDateValidator.GET(value));
 				}
 
 				Younger younger = parameter.getAnnotation(Younger.class);
@@ -326,22 +329,249 @@ public class Param {
 				
 				Before before = parameter.getAnnotation(Before.class);
 				if (before != null) {
-					LocalTime value = Parser.parseTime(before.value());
+					LocalDateTime value = Parser.parseDateTime(before.value());
 					if (value == null) {
-						throw new InvalidMappingMethodParamValidator(webController, method, parameter, before, "Must be a valid LocalTime");
+						throw new InvalidMappingMethodParamValidator(webController, method, parameter, before, "Must be a valid LocalDateTime");
 					}
 					
-					_validators.add(BeforeTimeValidator.GET(value));
+					_validators.add(BeforeDateTimeValidator.GET(value));
 				}
 				
 				After after = parameter.getAnnotation(After.class);
 				if (after != null) {
-					LocalTime value = Parser.parseTime(after.value());
+					LocalDateTime value = Parser.parseDateTime(after.value());
 					if (value == null) {
-						throw new InvalidMappingMethodParamValidator(webController, method, parameter, after, "Must be a valid LocalTime");
+						throw new InvalidMappingMethodParamValidator(webController, method, parameter, after, "Must be a valid LocalDateTime");
 					}
 					
-					_validators.add(AfterTimeValidator.GET(value));
+					_validators.add(AfterDateTimeValidator.GET(value));
+				}
+			
+			} else if (Enum.class.isAssignableFrom(type)) {
+				
+				checkAnnotations(webController, method, parameter, ALL_VALIDATORS, Required.class);
+				
+			} else {
+				throw new UnsupportedType(type);
+			}
+			
+			break;
+		case ARRAY:
+			
+		{
+			checkAnnotations(webController, method, parameter, ALL_VALIDATORS, Required.class, Min.class, Max.class);
+			
+			Min min = parameter.getAnnotation(Min.class);
+			if (min != null) {
+				int value = (int) min.value();
+				if (value != min.value() || value < 0) {
+					throw new InvalidMappingMethodParamValidator(webController, method, parameter, min, "Must be a positive or null integer value");
+				}
+				
+				_validators.add(MinArrayValidator.GET(type, value, min.strict()));
+			}
+			
+			Max max = parameter.getAnnotation(Max.class);
+			if (max != null) {
+				int value = (int) max.value();
+				if (value != max.value() || value < 0) {
+					throw new InvalidMappingMethodParamValidator(webController, method, parameter, max, "Must be a positive or null integer value");
+				}
+				
+				_validators.add(MaxArrayValidator.GET(type, value, max.strict()));
+			}
+		}
+		
+			break;
+		case LIST:
+			
+		{
+			checkAnnotations(webController, method, parameter, ALL_VALIDATORS, Required.class, Min.class, Max.class);
+			
+			Min min = parameter.getAnnotation(Min.class);
+			if (min != null) {
+				int value = (int) min.value();
+				if (value != min.value() || value < 0) {
+					throw new InvalidMappingMethodParamValidator(webController, method, parameter, min, "Must be a positive or null integer value");
+				}
+				
+				_validators.add(MinListValidator.GET(type, value, min.strict()));
+			}
+			
+			Max max = parameter.getAnnotation(Max.class);
+			if (max != null) {
+				int value = (int) max.value();
+				if (value != max.value() || value < 0) {
+					throw new InvalidMappingMethodParamValidator(webController, method, parameter, max, "Must be a positive or null integer value");
+				}
+				
+				_validators.add(MaxListValidator.GET(type, value, max.strict()));
+			}
+		}
+		
+			break;
+		default:
+			throw new UnsupportedType(multiplicity);
+		}
+		
+		this.validators = _validators.toArray(new Validator [_validators.size()]);
+	}
+	
+	private void processConsumers (Class <?> webController, Method method, Parameter parameter) {
+		List <Consumer> _consumers = new ArrayList <> ();
+		
+		switch (multiplicity) {
+		case SINGLE:
+			
+			if (String.class.equals(type)) {
+
+				checkAnnotations(webController, method, parameter, ALL_CONSUMERS, Default.class, Capitalize.class, UpperCase.class, LowerCase.class);
+
+				if (parameter.isAnnotationPresent(Default.class)) {
+					_consumers.add(DefaultConsumer.GET(parameter.getAnnotation(Default.class).value()));
+				}
+				
+				if (parameter.isAnnotationPresent(Capitalize.class)) {
+					_consumers.add(CapitalizeConsumer.GET(parameter.getAnnotation(Capitalize.class).value()));
+				}
+				
+				if (parameter.isAnnotationPresent(UpperCase.class)) {
+					_consumers.add(UpperCaseConsumer.GET());
+				}
+				
+				if (parameter.isAnnotationPresent(LowerCase.class)) {
+					_consumers.add(LowerCaseConsumer.GET());
+				}
+				
+			} else if (Number.class.isAssignableFrom(type)) {
+				
+				checkAnnotations(webController, method, parameter, ALL_CONSUMERS, Default.class);
+
+				Default _default = parameter.getAnnotation(Default.class);
+				if (_default != null) {
+					Number value = (Number) parse(_default.value(), type);
+					if (value == null) {
+						throw new InvalidMappingMethodParamConsumer(webController, method, parameter, _default, "Must be a Number that is compatible with the type");
+					}
+					
+					_consumers.add(DefaultConsumer.GET(value));
+				}
+				
+			} else if (Model.class.isAssignableFrom(type)) {
+				
+				checkAnnotations(webController, method, parameter, ALL_CONSUMERS, Default.class);
+				
+				Default _default = parameter.getAnnotation(Default.class);
+				if (_default != null) {
+					Long value = parse(_default.value(), Long.class);
+					if (value == null) {
+						throw new InvalidMappingMethodParamConsumer(webController, method, parameter, _default, "Must be same type as the models id"); // TODO
+					}
+					
+					_consumers.add(DefaultModelConsumer.GET(type, value));
+				}
+				
+			} else if (LocalDate.class.equals(type)) {
+
+				checkAnnotations(webController, method, parameter, ALL_CONSUMERS, Default.class);
+				
+				Default _default = parameter.getAnnotation(Default.class);
+				if (_default != null) {
+					LocalDate value = parse(_default.value(), LocalDate.class);
+					if (value == null) {
+						if (_default.value().equalsIgnoreCase("now")) {
+							_consumers.add(DefaultNowDateConsumer.GET());
+						} else {
+							throw new InvalidMappingMethodParamConsumer(webController, method, parameter, _default, "Must be a valid LocalDate or `now`");
+						}
+					} else {
+						_consumers.add(DefaultConsumer.GET(value));
+					}
+				}
+				
+			} else if (Boolean.class.equals(type)) {
+				
+				checkAnnotations(webController, method, parameter, ALL_CONSUMERS, Default.class);
+				
+				Default _default = parameter.getAnnotation(Default.class);
+				if (_default != null) {
+					Boolean value = parse(_default.value(), Boolean.class);
+					if (value == null) {
+						throw new InvalidMappingMethodParamConsumer(webController, method, parameter, _default, "Must be a valid Boolean value (TRUE/false, Y/n , 1/0..)");
+					}
+					
+					_consumers.add(DefaultConsumer.GET(value));
+				}
+				
+			} else if (Character.class.equals(type)) {
+				
+				checkAnnotations(webController, method, parameter, ALL_CONSUMERS, Default.class, UpperCase.class, LowerCase.class);
+				
+				Default _default = parameter.getAnnotation(Default.class);
+				if (_default != null) {
+					Character value = parse(_default.value(), Character.class);
+					if (value == null) {
+						throw new InvalidMappingMethodParamConsumer(webController, method, parameter, _default, "Must be a single character");
+					}
+					_consumers.add(DefaultConsumer.GET(value));
+				}
+				
+				if (parameter.isAnnotationPresent(UpperCase.class)) {
+					_consumers.add(UpperCaseCharConsumer.GET());
+				}
+				
+				if (parameter.isAnnotationPresent(LowerCase.class)) {
+					_consumers.add(LowerCaseCharConsumer.GET());
+				}
+				
+			} else if (LocalTime.class.equals(type)) {
+				
+				checkAnnotations(webController, method, parameter, ALL_CONSUMERS, Default.class);
+
+				Default _default = parameter.getAnnotation(Default.class);
+				if (_default != null) {
+					LocalTime value = parse(_default.value(), LocalTime.class);
+					if (value == null) {
+						if (_default.value().equalsIgnoreCase("now")) {
+							_consumers.add(DefaultNowTimeConsumer.GET());
+						} else {
+							throw new InvalidMappingMethodParamConsumer(webController, method, parameter, _default, "Must be a valid LocalTime or `now`");
+						}
+					} else {
+						_consumers.add(DefaultConsumer.GET(value));
+					}
+				}	
+				
+			} else if (LocalDateTime.class.equals(type)) {	
+				
+				checkAnnotations(webController, method, parameter, ALL_CONSUMERS, Default.class);
+
+				Default _default = parameter.getAnnotation(Default.class);
+				if (_default != null) {
+					LocalDateTime value = parse(_default.value(), LocalDateTime.class);
+					if (value == null) {
+						if (_default.value().equalsIgnoreCase("now")) {
+							_consumers.add(DefaultNowDateTimeConsumer.GET());
+						} else {
+							throw new InvalidMappingMethodParamConsumer(webController, method, parameter, _default, "Must be a valid LocalDateTime or `now`");
+						}
+					} else {
+						_consumers.add(DefaultConsumer.GET(value));
+					}
+				}				
+			
+			} else if (Enum.class.isAssignableFrom(type)) {
+				
+				checkAnnotations(webController, method, parameter, ALL_CONSUMERS, Default.class);
+				
+				Default _default = parameter.getAnnotation(Default.class);
+				if (_default != null) {
+					Object value = parseEnum(_default.value(), type);
+					if (value == null) {
+						throw new InvalidMappingMethodParamConsumer(webController, method, parameter, _default, "Must be one of the Enums constants (case sensitive)");
+					}
+
+					_consumers.add(DefaultConsumer.GET(value));
 				}
 				
 			} else {
@@ -351,119 +581,22 @@ public class Param {
 			break;
 		case ARRAY:
 			
-			
-			
+		{
+			checkAnnotations(webController, method, parameter, ALL_CONSUMERS);
+		}
+		
 			break;
 		case LIST:
 			
-			
-			
+		{
+			checkAnnotations(webController, method, parameter, ALL_CONSUMERS);
+		}
+		
 			break;
 		default:
 			throw new UnsupportedType(multiplicity);
 		}
 		
-		
-		
-		this.validators = _validators.toArray(new Validator [_validators.size()]);
-	}
-	
-	private void processConsumers (Class <?> webController, Method method, Parameter parameter) {
-		List <Consumer> _consumers = new ArrayList <> ();
-		
-		if (String.class.equals(type)) {
-			
-			if (parameter.isAnnotationPresent(Default.class)) {
-				_consumers.add(DefaultConsumer.GET(parameter.getAnnotation(Default.class).value()));
-			}
-			
-			if (parameter.isAnnotationPresent(Capitalize.class)) {
-				if (parameter.getAnnotation(Capitalize.class).value()) {
-					_consumers.add(ForcedCapitalizeConsumer.GET());
-				} else {
-					_consumers.add(CapitalizeConsumer.GET());
-				}
-			}
-			
-			if (parameter.isAnnotationPresent(UpperCase.class)) {
-				_consumers.add(UpperCaseConsumer.GET());
-			}
-			
-			if (parameter.isAnnotationPresent(LowerCase.class)) {
-				_consumers.add(LowerCaseConsumer.GET());
-			}
-			
-		} else if (Number.class.isAssignableFrom(type)) {
-			
-			Default _default = parameter.getAnnotation(Default.class);
-			if (_default != null) {
-				Double value = Parser.parseDouble(_default.value());
-				if (value == null) {
-					throw new InvalidMappingMethodParamConsumer(webController, method, parameter, _default, "Must be a number");
-				}
-				
-				_consumers.add(DefaultNumberConsumer.GET((Class<? extends Number>) type, value));
-			}
-			
-		} else if (Model.class.isAssignableFrom(type)) {
-			
-			Default _default = parameter.getAnnotation(Default.class);
-			if (_default != null) {
-				Long value = Parser.parseLong(_default.value());
-				if (value == null) {
-					throw new InvalidMappingMethodParamConsumer(webController, method, parameter, _default, "Must be same type as the models id"); // TODO
-				}
-				
-				_consumers.add(DefaultModelConsumer.GET((Class<? extends Model<?>>) type, value));
-			}
-			
-		} else if (LocalDate.class.equals(type)) {
-			
-			Default _default = parameter.getAnnotation(Default.class);
-			if (_default != null) {
-				LocalDate value = Parser.parseDate(_default.value());
-				if (value == null) {
-					if (_default.value().equalsIgnoreCase("now")) {
-						_consumers.add(DefaultNowDateConsumer.GET());
-					} else {
-						throw new InvalidMappingMethodParamConsumer(webController, method, parameter, _default, "Must be a valid date or `now`");
-					}
-				} else {
-					_consumers.add(DefaultDateConsumer.GET(value));
-				}
-			}
-			
-		} else if (Boolean.class.equals(type)) {
-			
-			// TODO add false / true and thus remove flag
-			// u mean default?
-			if (parameter.isAnnotationPresent(Flag.class)) {
-				_consumers.add(FlagConsumer.GET());
-			}
-			
-		} else if (Character.class.equals(type)) {
-			
-			Default _default = parameter.getAnnotation(Default.class);
-			if (_default != null) {
-				Character value = Parser.parseChar(_default.value());
-				if (value == null) {
-					throw new InvalidMappingMethodParamConsumer(webController, method, parameter, _default, "Must be a single character");
-				}
-				_consumers.add(DefaultCharConsumer.GET(value));
-			}
-			
-			if (parameter.isAnnotationPresent(UpperCase.class)) {
-				_consumers.add(UpperCaseCharConsumer.GET());
-			}
-			
-			if (parameter.isAnnotationPresent(LowerCase.class)) {
-				_consumers.add(LowerCaseCharConsumer.GET());
-			}
-			
-		} else {
-			throw new UnsupportedType(type);
-		}
-
 		this.consumers = _consumers.toArray(new Consumer [_consumers.size()]);
 	}
 	
@@ -484,42 +617,68 @@ public class Param {
 			
 			switch (multiplicity) { // Yield woud've been nice here, but there is no syntax coloring for it in Eclipse, so no. lol
 			case SINGLE:
-				if (primitive) {
-					value = getParameter(name, type, request);
-				} else {
-					value = getEntity(name, type, request);
-				}
-				break;
 				
-			case ARRAY:
-				if (primitive) {
-					value = getParameters(name, type, request);
-				} else {
-					value = getEntities(name, type, request);
+				switch (kind) {
+				case PRIMITIVE:
+					value = getParameter(name, type, request);
+					break;
+				case ENUM:
+					value = getEnum(name, type, request);
+					break;
+				case MODEL:
+					value = getEntity(name, type, request);
+					break;
+				default:
+					throw new UnsupportedType(kind);
 				}
+				
 				break;
-
-			case LIST:
-				if (primitive) {
+			case ARRAY:
+				
+				switch (kind) {
+				case PRIMITIVE:
 					value = getParameters(name, type, request);
-				} else {
+					break;
+				case ENUM:
+					value = getEnums(name, type, request);
+					break;
+				case MODEL:
 					value = getEntities(name, type, request);
+					break;
+				default:
+					throw new UnsupportedType(kind);
+				}
+
+				break;
+			case LIST:
+				
+				switch (kind) {
+				case PRIMITIVE:
+					value = getParameters(name, type, request);
+					break;
+				case ENUM:
+					value = getEnums(name, type, request);
+					break;
+				case MODEL:
+					value = getEntities(name, type, request);
+					break;
+				default:
+					throw new UnsupportedType(kind);
 				}
 				value = constructList(value, type);
-				break;
 				
+				break;
 			default:
 				throw new UnsupportedType(multiplicity);
 			}
 			
 			validate(value);
-			
 			return consume(value);
 			
 		} catch (InvalidParameter e) {
 			throw e;
-		} catch (Exception e) {
-			throw new UnhandledDevException(e); // In case I missed something with all the casting going on
+		} catch (Exception e) { // In case I missed something with all the casting going on
+			throw new UnhandledDevException(e);
 		}
 	}
 	
@@ -573,6 +732,26 @@ public class Param {
 		return entities;
 	}
 	
+	@SuppressWarnings("unchecked")
+	private static <T> T getEnum (String name, Class <T> type, HttpServletRequest request) {
+		String constant = getParameter(name, String.class, request);
+		return (T) parseEnum(constant, type);
+	}
+	
+	@SuppressWarnings("unchecked")
+	private static <T> T [] getEnums (String name, Class <T> type, HttpServletRequest request) {
+		String [] constants = getParameters(name, String.class, request);
+		if (constants == null) {
+			return null;
+		}
+		
+		T [] enums = (T []) Array.newInstance(type, constants.length);
+		for (int i = 0; i < enums.length; i++) {
+			enums[i] = (T) parseEnum(constants[i], type);
+		}
+		return enums;
+	}
+
 	private static <T> T getParameter (String name, Class <T> type, HttpServletRequest request) {
 		String parameter = request.getParameter(name);
 		return parse(parameter, type);
@@ -594,6 +773,21 @@ public class Param {
 		return parsedParameters;
 	}
 	
+	@SuppressWarnings("unchecked")
+	private static <T, S extends Enum <S>> T parseEnum (String constant, Class <T> type) {
+		if (constant == null) {
+			return null;
+		}
+		
+		try {
+			return (T) Enum.valueOf((Class <S>) type, constant);
+		} catch (IllegalArgumentException e) {
+			return null;
+		} catch (Exception e) {
+			throw new UnhandledDevException(e);
+		}
+	}
+	
 	private static <T> T parse (String s, Class <T> type) {
 		try {
 			return Parser.parse(s, type);
@@ -606,6 +800,12 @@ public class Param {
 		SINGLE,
 		ARRAY,
 		LIST;
+	}
+	
+	private static enum Kind {
+		PRIMITIVE,
+		ENUM,
+		MODEL;
 	}
 	
 }

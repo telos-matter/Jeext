@@ -1,32 +1,27 @@
 package jeext.controller.core.param.validators;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class MaxValidator implements Validator {
 
-	private static final Map <Double, MaxValidator> SET = new HashMap <> ();
-	
-	public static MaxValidator GET (double value) {
-		MaxValidator validator = SET.get(value);
-		
-		if (validator == null) {
-			validator = new MaxValidator (value);
-			SET.put(value, validator);
-		}
-		
-		return validator;
+	public static MaxValidator GET (double value, boolean strict) {
+		return new MaxValidator (value, strict);
 	}
 	
 	private double value;
+	private boolean strict;
 	
-	private MaxValidator (double value) {
+	private MaxValidator (double value, boolean strict) {
 		this.value = value;
+		this.strict = strict;
 	}
 
 	@Override
-	public boolean validate(Object object) {
-		return (object == null)? true : ((Number) object).doubleValue() <= value;
+	public boolean validate (Object number) {
+		if (number == null) {
+			return true;
+		}
+		
+		double objectValue = ((Number) number).doubleValue();
+		return (strict)? objectValue < value : objectValue <= value;
 	}
 	
 }

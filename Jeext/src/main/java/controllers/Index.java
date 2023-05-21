@@ -33,9 +33,6 @@ import models.permission.Permission;
 @WebController
 public class Index {
 	
-	public static void name(Integer   i) {
-		System.out.println("penis" +i);
-	}
 	
 	public static void main(String[] args) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 //		Method method = Index.class.getMethods()[1];
@@ -64,9 +61,12 @@ public class Index {
 //		System.out.println(l);
 		// 2023-06-03T19:27:25.1 
 		// 2023-05-18T19:29:14.2 
-		System.out.println(LocalTime.parse("19:27:25.1"));
-		System.out.println(LocalDateTime.parse("2023-06-03T19:27:25.1"));
-		System.out.println(LocalDate.parse("2023-05-18").getMonth());
+//		System.out.println(LocalTime.parse("19:27:25.1"));
+//		System.out.println(LocalDateTime.parse("2023-06-03T19:27:25.1"));
+//		System.out.println(LocalDate.parse("2023-05-18").getMonth());
+		
+//		System.out.println(Byte.parseByte("12333"));
+		
 //		Sysout
 	}
 	
@@ -76,33 +76,49 @@ public class Index {
 //				@Required(false) @Default("world") String name,
 //				@Required(false) @Default("12") Integer age,
 //				@Required(false) @Default("1") @Name("id") User user ,
-				  String a,
-				Integer age,
-//				List<Integer> ages,
-				Integer [] ages,
-//				List <Integer> ages_l,
+//				@Max(3) @Min(2) Integer [] ages,
+//				@Max(3) @Min(2) List <Integer> ages,
+				@Default("125") Byte tt,
+//				List<Test> t,
+//				@Default("3.2") Integer i,
 //				@Composed() User userr,
 				HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 //		request.setAttribute("name", name);
 //		
 //		request.getRequestDispatcher("/WEB-INF/jsps/index.jsp").forward(request, response);
 		
+		System.out.println(tt);
+		
+//		System.out.println("T: " +t);
+//		if (t != null) {	
+//			for (var i : t) {
+//				System.out.println("-> " +i);
+//			}
+//		}
+		
+		
 //		System.out.println("?");
 //		user = Manager.find(User.class, "1");
-		
-		System.out.println("Age: "+ age);
-		System.out.println("Ages: " +ages);
-		if (ages != null) {	
-			for (var i : ages) {
-				System.out.println("-> " +i);
-			}
-		}
+//		System.out.println("i: " +i);
+//		System.out.println("Ages: " +ages);
+//		if (ages != null) {	
+//			for (var i : ages) {
+//				System.out.println("-> " +i);
+//			}
+//		}
 		
 //		Collections
 //		List<E>
 		
 		Controller.writeSimpleText(response, "out");
 //		Controller.writeSimpleText(response, "name: " +name +", age: " +age +"\nuser: "+user);
+	}
+	
+	private static enum Test {
+		T1,
+		T2,
+		T3,
+		T_f4;
 	}
 	
 }

@@ -29,8 +29,8 @@ public class YoungerValidator implements Validator {
 	}
 
 	@Override
-	public boolean validate (Object object) {
-		return (object == null)? true : !Dates.hasElapsed((LocalDate) object, value);
+	public boolean validate (Object localDate) {
+		return (localDate == null)? true : !Dates.hasElapsed((LocalDate) localDate, value);
 	}
 	
 }

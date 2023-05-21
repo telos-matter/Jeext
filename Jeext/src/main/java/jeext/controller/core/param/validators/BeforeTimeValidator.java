@@ -26,8 +26,8 @@ public class BeforeTimeValidator implements Validator {
 	}
 
 	@Override
-	public boolean validate(Object object) {
-		return (object == null)? true : ((LocalTime) object).isBefore(value);
+	public boolean validate (Object localTime) {
+		return (localTime == null)? true : ((LocalTime) localTime).isBefore(value);
 	}
 	
 }

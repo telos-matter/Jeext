@@ -1,32 +1,27 @@
 package jeext.controller.core.param.validators;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class MinStringValidator implements Validator {
-
-	private static final Map <Integer, MinStringValidator> SET = new HashMap <> ();
 	
-	public static MinStringValidator GET (int value) {
-		MinStringValidator validator = SET.get(value);
-		
-		if (validator == null) {
-			validator = new MinStringValidator (value);
-			SET.put(value, validator);
-		}
-		
-		return validator;
+	public static MinStringValidator GET (int value, boolean strict) {
+		return new MinStringValidator (value, strict);
 	}
 	
 	private int value;
-	
-	private MinStringValidator (int value) {
+	private boolean strict;
+
+	private MinStringValidator (int value, boolean strict) {
 		this.value = value;
+		this.strict = strict;
 	}
 
 	@Override
-	public boolean validate (Object object) {
-		return (object == null)? true : ((String) object).length() >= value;
+	public boolean validate(Object string) {
+		if (string == null) {
+			return true;
+		}
+		
+		int objectValue = ((String) string).length();
+		return (strict)? objectValue > value : objectValue >= value;
 	}
 	
 }

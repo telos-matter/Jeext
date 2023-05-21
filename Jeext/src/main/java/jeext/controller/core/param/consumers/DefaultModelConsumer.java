@@ -8,9 +8,9 @@ import jeext.models_core.Model;
 
 public class DefaultModelConsumer implements Consumer {
 
-	private static final Map <Class <? extends Model <?>>, Map <Object, DefaultModelConsumer>> SET = new HashMap <> ();
+	private static final Map <Class <?>, Map <Object, DefaultModelConsumer>> SET = new HashMap <> ();
 	
-	public static DefaultModelConsumer GET (Class <? extends Model <?>> type, Object id) {
+	public static DefaultModelConsumer GET (Class <?> type, Object id) {
 		Map <Object, DefaultModelConsumer> SUB_SET = SET.get(type);
 		
 		if (SUB_SET == null) {
@@ -28,10 +28,10 @@ public class DefaultModelConsumer implements Consumer {
 		return consumer;
 	}
 	
-	private Class <? extends Model <?>> type;
+	private Class <?> type;
 	private Object id;
 	
-	private DefaultModelConsumer (Class <? extends Model <?>> type, Object id) {
+	private DefaultModelConsumer (Class <?> type, Object id) {
 		this.type = type;
 		this.id = id;
 	}

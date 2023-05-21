@@ -5,9 +5,9 @@ import java.util.Map;
 
 public class DefaultConsumer implements Consumer {
 
-	private static final Map <String, DefaultConsumer> SET = new HashMap <> ();
+	private static final Map <Object, DefaultConsumer> SET = new HashMap <> ();
 	
-	public static DefaultConsumer GET (String value) {
+	public static DefaultConsumer GET (Object value) {
 		DefaultConsumer consumer = SET.get(value);
 		
 		if (consumer == null) {
@@ -18,19 +18,19 @@ public class DefaultConsumer implements Consumer {
 		return consumer;
 	}
 	
-	private String value;
+	private Object value;
 	
-	private DefaultConsumer (String value) {
+	private DefaultConsumer (Object value) {
 		this.value = value;
 	}
-
+	
 	@Override
 	public Object consume (Object object) {
-		if (object == null || ((String) object).isBlank()) {
+		if (object == null || (object instanceof String stringObject && stringObject.isBlank())) {
 			return value;
-		} else {
-			return object;
 		}
+		
+		return object;
 	}
 	
 }
