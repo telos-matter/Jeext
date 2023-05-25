@@ -1,7 +1,13 @@
 package jeext.controller.core.param.consumers;
 
+import jeext.controller.core.param.consumers.annotations.Default;
 import jeext.dao.Manager;
+import jeext.model.Model;
 
+/**
+ * <p>The implementation of the {@link Default} {@link Consumer}
+ * for {@link Model}
+ */
 public class DefaultModelConsumer implements Consumer {
 
 	

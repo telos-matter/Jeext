@@ -10,6 +10,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.Table;
 
 import jeext.controller.Filter;
+import jeext.controller.core.param.composer.annotations.ModelId;
 import jeext.model.Model;
 import jeext.util.Strings;
 import models.permission.Permission;
@@ -23,6 +24,7 @@ import javax.persistence.ElementCollection;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.persistence.FetchType;
 
@@ -66,10 +68,12 @@ public class User extends Model <User> implements Serializable {
 		this.permissions = new HashSet <> ();
 		this.creation_date = LocalDate.now();
 	}
-      
+     
+	// TODO i dont think ill update documentation, use the composer things tho
+	@ModelId
 	@Id 
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 
 	@Column(nullable= false, unique= true)
 	private String username;
@@ -128,7 +132,7 @@ public class User extends Model <User> implements Serializable {
 		return id;
 	}
 
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 

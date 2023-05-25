@@ -71,11 +71,13 @@ import java.util.stream.Stream;
  */
 public class Param {
 	
+	// MENTION they are not commutative
 	// MENTION by default required is on, but then if u use default its off automatically
 	// MENTION only models integer based id are allowed, no error now, but error when we try to retrieve, no UUID chief
 	// MENTION models should inherit from model to be considered a model, duh
 	// MENTION default consumer for string "cannot" be empty string, cuz it consideres emptry string and null same
 	// MENTION enums should we written as they are declared
+	// MENTION idtype cant be primitive
 	
 	private static final Set <Class <? extends Annotation>> ALL_VALIDATORS = Set.of(After.class, Alphabetic.class, Alphanumeric.class, Before.class, Email.class, Max.class, Min.class, NonBlank.class, Older.class, Regex.class, Required.class, Younger.class);
 	private static final Set <Class <? extends Annotation>> ALL_CONSUMERS = Set.of(Capitalize.class, Default.class, LowerCase.class, UpperCase.class);

@@ -153,6 +153,8 @@ public class Strings {
 	 * @return a {@link String} version of the given {@link String}
 	 * where only the first character is in uppercase, or <code>null</code>
 	 * if the given {@link String} is <code>null</code>
+	 * 
+	 * @see #capitalize(String)
 	 */
 	public static String forceCapitalize (String s) {
 		if (s == null) {
@@ -165,6 +167,8 @@ public class Strings {
 	 * @return a capitalized {@link String} version of the
 	 * given {@link String}, or <code>null</code> if the given {@link String}
 	 * is <code>null</code>
+	 * 
+	 * @see #forceCapitalize(String)
 	 */
 	public static String capitalize (String s) {
 		if (s == null) {

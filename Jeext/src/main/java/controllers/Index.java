@@ -78,7 +78,7 @@ public class Index {
 //				@Required(false) @Default("1") @Name("id") User user ,
 //				@Max(3) @Min(2) Integer [] ages,
 //				@Max(3) @Min(2) List <Integer> ages,
-				@Default("125") Byte tt,
+//				@Default("125") Byte tt,
 //				List<Test> t,
 //				@Default("3.2") Integer i,
 				@Composed() User userr,
@@ -87,7 +87,7 @@ public class Index {
 //		
 //		request.getRequestDispatcher("/WEB-INF/jsps/index.jsp").forward(request, response);
 		
-		System.out.println(tt);
+//		System.out.println(tt);
 		
 //		System.out.println("T: " +t);
 //		if (t != null) {	
@@ -110,7 +110,7 @@ public class Index {
 //		Collections
 //		List<E>
 		
-		Controller.writeSimpleText(response, "out");
+		Controller.writeSimpleText(response, userr);
 //		Controller.writeSimpleText(response, "name: " +name +", age: " +age +"\nuser: "+user);
 	}
 	

@@ -1,7 +1,11 @@
 package jeext.controller.core.param.consumers;
 
+import jeext.controller.core.param.consumers.annotations.Capitalize;
 import jeext.util.Strings;
 
+/**
+ * The implementation of the {@link Capitalize} {@link Consumer}
+ */
 public class CapitalizeConsumer implements Consumer {
 
 	private static final CapitalizeConsumer TRUE_CONSUMER = new CapitalizeConsumer(true);
