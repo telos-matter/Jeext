@@ -1,5 +1,6 @@
 package jeext.util;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.Objects;
 
@@ -107,6 +108,32 @@ public class Dates {
 	}
 	
 	/**
+	 * @return the {@link DayOfWeek#MONDAY} {@link LocalDate}
+	 * of whatever week the passed {@link LocalDate} is in,
+	 * or <code>null</code> if the {@link LocalDate} is <code>null</code>
+	 */
+	public static LocalDate getMondayOfWeek (LocalDate localDate) {
+		if (localDate == null) {
+			return null;
+		}
+		
+		return localDate.minusDays(localDate.getDayOfWeek().getValue() -1);
+	}
+	
+	/**
+	 * @return the {@link DayOfWeek#SUNDAY} {@link LocalDate}
+	 * of whatever week the passed {@link LocalDate} is in,
+	 * or <code>null</code> if the {@link LocalDate} is <code>null</code>
+	 */
+	public static LocalDate getSundayOfWeek (LocalDate localDate) {
+		if (localDate == null) {
+			return null;
+		}
+
+		return localDate.plusDays(7 -localDate.getDayOfWeek().getValue());
+	}
+	
+	/**
 	 * <p>A class that represents a period of time in years, months and days
 	 * <p>Primarily created to easily group those values
 	 * <p>Use {@link #parse(String)} to parse a {@link String} into 
@@ -115,10 +142,15 @@ public class Dates {
 	 */
 	public static class PeriodHolder {
 		
+		/**
+		 * The delimiter in the format
+		 */
+		public static final char DELIMITER = ',';
+		
 		private final int years, months, days;
 
 		/**
-		 * @param s	the {@link String} to be parsed. It must follow this format: 'y:m:d', 
+		 * @param s	the {@link String} to be parsed. It must follow this format: 'y,m,d', 
 		 * with y, m and d being the number of years, months and days respectively.
 		 * Negative values are permitted
 		 * @return an instance of this class from the given {@link String}
@@ -127,9 +159,9 @@ public class Dates {
 		 */
 		public static PeriodHolder parse (String s) {
 			Objects.requireNonNull(s);
-			
-			int first_delimiter = s.indexOf(':');
-			int last_delimiter = s.lastIndexOf(':');
+
+			int first_delimiter = s.indexOf(DELIMITER);
+			int last_delimiter = s.lastIndexOf(DELIMITER);
 			if (first_delimiter == -1 || first_delimiter == last_delimiter) {
 				throw new FailedRequirement("The given String `" +s +"` does not follow the specified format");
 			}

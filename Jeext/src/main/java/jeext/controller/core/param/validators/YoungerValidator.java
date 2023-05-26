@@ -4,9 +4,13 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
+import jeext.controller.core.param.validators.annotations.Younger;
 import jeext.util.Dates;
 import jeext.util.Dates.PeriodHolder;
 
+/**
+ * The implementation of the {@link Younger} {@link Validator}
+ */
 public class YoungerValidator implements Validator {
 
 	private static final Map <PeriodHolder, YoungerValidator> SET = new HashMap <> ();

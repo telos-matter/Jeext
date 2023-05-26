@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 public @interface Composed {
 	
 	String value () default "";
-	
+	// add ignore id
 	boolean requireAll () default true; // all fields are required, if they are not here then invalid 
 	
 	boolean retrieveFirst () default false; // db

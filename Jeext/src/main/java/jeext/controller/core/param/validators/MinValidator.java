@@ -1,5 +1,9 @@
 package jeext.controller.core.param.validators;
 
+/**
+ * The implementation of the {@link Min} {@link Validator}
+ * for {@link Number}
+ */
 public class MinValidator implements Validator {
 
 	public static MinValidator GET (double value, boolean strict) {

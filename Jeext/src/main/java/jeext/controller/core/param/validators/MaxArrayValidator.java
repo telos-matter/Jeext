@@ -1,7 +1,13 @@
 package jeext.controller.core.param.validators;
 
-import java.util.Arrays;
+import java.lang.reflect.Array;
 
+import jeext.controller.core.param.validators.annotations.Max;
+
+/**
+ * The implementation of the {@link Max} {@link Validator}
+ * for {@link Array}
+ */
 public class MaxArrayValidator implements Validator {
 
 	public static MaxArrayValidator GET (Class <?> type, int value, boolean strict) {
@@ -27,7 +33,12 @@ public class MaxArrayValidator implements Validator {
 	private static <T> boolean check (Object array, Class <T> type, int value, boolean strict) {
 		T [] _array = (T []) array;
 		
-		int count = (int) Arrays.stream(_array).filter(e -> e != null).count();
+		int count = 0;
+		for (int i = 0; i < _array.length; i++) {
+			if (_array[i] != null) {
+				count++;
+			}
+		}
 		
 		return (strict)? count < value : count <= value;
 	}

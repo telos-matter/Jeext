@@ -24,7 +24,8 @@ import jeext.controller.core.param.validators.Validator;
  * <li>{@link UpperCase}
  * <li>{@link LowerCase}
  * </ul>
- * <p><b>Implementation note:</b> The benefits that come with
+ * 
+ * @implNote The benefits that come with
  * using a {@link FunctionalInterface}
  * is not used at all at the moment
  * 
@@ -35,6 +36,9 @@ import jeext.controller.core.param.validators.Validator;
 @FunctionalInterface
 public interface Consumer {
 
+	/**
+	 * @see Consumer
+	 */
 	public Object consume (Object object);
 	
 }

@@ -1,5 +1,10 @@
 package jeext.controller.core.param.validators;
 
+import jeext.controller.core.param.validators.annotations.NonBlank;
+
+/**
+ * The implementation of the {@link NonBlank} {@link Validator}
+ */
 public class NonBlankValidator implements Validator {
 
 	private static final NonBlankValidator VALIDATOR = new NonBlankValidator();

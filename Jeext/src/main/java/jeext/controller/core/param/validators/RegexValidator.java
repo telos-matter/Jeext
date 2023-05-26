@@ -4,6 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import jeext.controller.core.param.validators.annotations.Regex;
+
+/**
+ * The implementation of the {@link Regex} {@link Validator}
+ */
 public class RegexValidator implements Validator {
 
 	private static final Map <String, RegexValidator> SET = new HashMap <> ();

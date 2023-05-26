@@ -1,5 +1,11 @@
 package jeext.controller.core.param.validators;
 
+import jeext.controller.core.param.validators.annotations.Max;
+
+/**
+ * The implementation of the {@link Max} {@link Validator}
+ * for {@link Number}
+ */
 public class MaxValidator implements Validator {
 
 	public static MaxValidator GET (double value, boolean strict) {

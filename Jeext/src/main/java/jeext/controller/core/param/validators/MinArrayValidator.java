@@ -1,7 +1,13 @@
 package jeext.controller.core.param.validators;
 
-import java.util.Arrays;
+import java.lang.reflect.Array;
 
+import jeext.controller.core.param.validators.annotations.Min;
+
+/**
+ * The implementation of the {@link Min} {@link Validator}
+ * for {@link Array}
+ */
 public class MinArrayValidator implements Validator {
 
 	public static MinArrayValidator GET (Class <?> type, int value, boolean strict) {
@@ -27,7 +33,12 @@ public class MinArrayValidator implements Validator {
 	private static <T> boolean check (Object array, Class <T> type, int value, boolean strict) {
 		T [] _array = (T []) array;
 		
-		int count = (int) Arrays.stream(_array).filter(e -> e != null).count();
+		int count = 0;
+		for (int i = 0; i < _array.length; i++) {
+			if (_array[i] != null) {
+				count++;
+			}
+		}
 		
 		return (strict)? count > value : count >= value;
 	}

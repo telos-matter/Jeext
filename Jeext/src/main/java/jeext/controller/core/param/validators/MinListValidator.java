@@ -2,6 +2,10 @@ package jeext.controller.core.param.validators;
 
 import java.util.List;
 
+/**
+ * The implementation of the {@link Min} {@link Validator}
+ * for {@link List}
+ */
 public class MinListValidator implements Validator {
 
 	public static MinListValidator GET (Class <?> type, int value, boolean strict) {
@@ -27,7 +31,12 @@ public class MinListValidator implements Validator {
 	private static <T> boolean check (Object list, Class <T> type, int value, boolean strict) {
 		List <T> _list = (List <T>) list;
 		
-		int count = (int) _list.stream().filter(e -> e != null).count();
+		int count = 0;
+		for (int i = 0; i < _list.size(); i++) {
+			if (_list.get(i) != null) {
+				count++;
+			}
+		}
 		
 		return (strict)? count > value : count >= value;
 	}

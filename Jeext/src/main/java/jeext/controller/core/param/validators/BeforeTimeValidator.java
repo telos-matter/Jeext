@@ -4,6 +4,12 @@ import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.Map;
 
+import jeext.controller.core.param.validators.annotations.Before;
+
+/**
+ * The implementation of the {@link Before} {@link Validator}
+ * for {@link LocalTime}
+ */
 public class BeforeTimeValidator implements Validator {
 
 	private static final Map <LocalTime, BeforeTimeValidator> SET = new HashMap <> ();

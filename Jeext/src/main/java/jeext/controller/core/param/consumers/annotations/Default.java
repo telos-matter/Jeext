@@ -14,6 +14,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 import jeext.controller.core.param.Param;
+import jeext.controller.core.param.composer.annotations.Composed;
 import jeext.controller.core.param.composer.annotations.ModelId;
 import jeext.controller.core.param.consumers.Consumer;
 import jeext.controller.core.param.consumers.DefaultConsumer;
@@ -21,6 +22,7 @@ import jeext.controller.core.param.consumers.DefaultModelConsumer;
 import jeext.controller.core.param.consumers.DefaultNowDateConsumer;
 import jeext.controller.core.param.consumers.DefaultNowDateTimeConsumer;
 import jeext.controller.core.param.consumers.DefaultNowTimeConsumer;
+import jeext.controller.core.param.validators.annotations.Required;
 import jeext.dao.Manager;
 import jeext.model.Model;
 import jeext.util.Parser;
@@ -71,6 +73,10 @@ import jeext.util.Parser;
  * this {@link Consumer} would give the default value defined to
  * the {@link String} {@link Param}
  * if it's blank (blank as defined in {@link String#isBlank()})
+ * 
+ * <p><b>Know that</b> this {@link Consumer} is mutually exclusive with
+ * {@link Required} and {@link Composed}
+ * 
  * <p>The {@link Class}es that actual implement this {@link Consumer} are:
  * <ul>
  * <li>{@link DefaultConsumer}
@@ -79,6 +85,10 @@ import jeext.util.Parser;
  * <li>{@link DefaultNowTimeConsumer}
  * <li>{@link DefaultNowDateTimeConsumer}
  * </ul>
+ * 
+ * @see Param
+ * @see Required
+ * @see Composed
  */
 @Retention(RUNTIME)
 @Target(PARAMETER)

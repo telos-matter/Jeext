@@ -4,6 +4,12 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
+import jeext.controller.core.param.validators.annotations.After;
+
+/**
+ * The implementation of the {@link After} {@link Validator}
+ * for {@link LocalDate}
+ */
 public class AfterDateValidator implements Validator {
 
 	private static final Map <LocalDate, AfterDateValidator> SET = new HashMap <> ();
