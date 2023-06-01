@@ -12,7 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jeext.controller.Controller;
 import jeext.controller.core.Access;
-import jeext.controller.core.HttpMethod;
+import jeext.controller.core.HTTPMethod;
 import jeext.controller.core.Path;
 import jeext.controller.core.annotations.WebController;
 import jeext.controller.core.annotations.WebMapping;
@@ -43,7 +43,7 @@ import models.permission.Permission;
  * from the user's request as parameters of that method,
  * read more about that in {@link Param}
  * <p><b>Conception note:</b> a {@link Mapping} has no information about the actual
- * {@link Path} it handles nor about the {@link HttpMethod} it takes care of. That
+ * {@link Path} it handles nor about the {@link HTTPMethod} it takes care of. That
  * job is left to the {@link Controller} and {@link MappingCollection}
  * 
  * @see Param
@@ -214,6 +214,11 @@ public class Mapping {
 			
 			return true;
 		}
+	}
+
+	@Override
+	public String toString() {
+		return "" +method;
 	}
 	
 }

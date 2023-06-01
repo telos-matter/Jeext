@@ -10,7 +10,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.Table;
 
 import jeext.controller.Filter;
-import jeext.controller.core.param.composer.annotations.ModelId;
+import jeext.controller.core.param.annotations.MID;
 import jeext.model.Model;
 import jeext.util.Strings;
 import models.permission.Permission;
@@ -70,7 +70,7 @@ public class User extends Model <User> implements Serializable {
 	}
      
 	// TODO i dont think ill update documentation, use the composer things tho
-	@ModelId
+	@MID
 	@Id 
 	@GeneratedValue(strategy= GenerationType.IDENTITY)
 	private Long id;

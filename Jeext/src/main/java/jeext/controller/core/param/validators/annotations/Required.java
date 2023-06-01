@@ -9,7 +9,7 @@ import java.lang.reflect.Array;
 import java.util.List;
 
 import jeext.controller.core.param.Param;
-import jeext.controller.core.param.composer.annotations.Composed;
+import jeext.controller.core.param.annotations.composer.Composed;
 import jeext.controller.core.param.consumers.annotations.Default;
 import jeext.controller.core.param.validators.RequiredValidator;
 import jeext.controller.core.param.validators.Validator;

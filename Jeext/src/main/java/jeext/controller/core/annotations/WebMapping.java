@@ -9,9 +9,9 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 
 import jeext.controller.core.Access;
-import jeext.controller.core.HttpMethod;
+import jeext.controller.core.HTTPMethod;
 import jeext.controller.core.mapping.Mapping;
-import jeext.controller.core.util.BooleanEnum;
+import jeext.controller.util.BooleanEnum;
 import models.permission.Permission;
 
 /**
@@ -22,7 +22,7 @@ import models.permission.Permission;
  * must reside within a {@link WebController}
  * <p>The developer indicates trough this {@link WebMapping} {@link Annotation}
  * the different values for the {@link Mapping}, that is the URL it takes
- * care of ({@link #value()}), the {@link HttpMethod} it handles ({@link #method()}),
+ * care of ({@link #value()}), the {@link HTTPMethod} it handles ({@link #method()}),
  * what type of {@link Access} is needed ({@link #access()}), the {@link Permission}s
  * needed ({@link #permissions()}) and whether or not the user needs all of them or
  * just one of them ({@link #anyPermission()})
@@ -51,14 +51,14 @@ public @interface WebMapping {
 	 * that the requirements of the final mappings' URL always apply, i.e.
 	 * it should start with `/` and should NOT start with neither
 	 * `/res` nor `/controller`.
-	 * <p>Of course the final URL with the specified {@link HttpMethod}
+	 * <p>Of course the final URL with the specified {@link HTTPMethod}
 	 * ({@link #method()}) should be unique across all of the web application
 	 * <p>By default it is the empty string ""
 	 */
 	String value () default "";
 
 	/**
-	 * <p>The {@link HttpMethod} that this {@link Mapping}
+	 * <p>The {@link HTTPMethod} that this {@link Mapping}
 	 * is going to accept, i.e. only request made trough/with
 	 * this method are going to the {@link Mapping}
 	 * <p>This value is dependent on each individual {@link Mapping}
@@ -67,9 +67,9 @@ public @interface WebMapping {
 	 * regardless of the value of {@link #inherit()}
 	 * <p>Of course the final URL ({@link #value()}) with the specified 
 	 * method should be unique across all of the web application
-	 * <p>By default it is {@link HttpMethod#GET}
+	 * <p>By default it is {@link HTTPMethod#GET}
 	 */
-	HttpMethod method () default HttpMethod.GET;
+	HTTPMethod method () default HTTPMethod.GET;
 	
 	/**
 	 * <p>The {@link Access} values needed to access this {@link Mapping}

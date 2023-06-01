@@ -13,7 +13,7 @@ import jakarta.servlet.http.HttpServlet;
 import jeext.controller.Controller;
 import jeext.controller.core.Access;
 import jeext.controller.core.mapping.Mapping;
-import jeext.controller.core.util.BooleanEnum;
+import jeext.controller.util.BooleanEnum;
 import models.User;
 import models.permission.Permission;
 

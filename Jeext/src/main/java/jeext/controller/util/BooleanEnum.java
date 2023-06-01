@@ -1,4 +1,4 @@
-package jeext.controller.core.util;
+package jeext.controller.util;
 
 import java.lang.annotation.Annotation;
 

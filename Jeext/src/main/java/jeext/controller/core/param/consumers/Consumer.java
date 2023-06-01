@@ -3,8 +3,8 @@ package jeext.controller.core.param.consumers;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
+import jeext.controller.core.param.Composer;
 import jeext.controller.core.param.Param;
-import jeext.controller.core.param.composer.Composer;
 import jeext.controller.core.param.consumers.annotations.Capitalize;
 import jeext.controller.core.param.consumers.annotations.Default;
 import jeext.controller.core.param.consumers.annotations.LowerCase;

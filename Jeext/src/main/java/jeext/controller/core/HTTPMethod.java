@@ -9,7 +9,7 @@ import jeext.controller.core.annotations.WebMapping;
  * <p>Used primarily in {@link WebMapping}s
  * to indicate which method they accept
  */
-public enum HttpMethod {
+public enum HTTPMethod {
 
 	GET,
 	POST,

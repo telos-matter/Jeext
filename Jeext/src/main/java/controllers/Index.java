@@ -19,7 +19,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jeext.controller.Controller;
 import jeext.controller.core.annotations.*;
 import jeext.controller.core.param.annotations.Name;
-import jeext.controller.core.param.composer.annotations.Composed;
+import jeext.controller.core.param.annotations.composer.Composed;
 import jeext.controller.core.param.consumers.annotations.*;
 import jeext.controller.core.param.validators.annotations.*;
 import jeext.dao.Manager;
@@ -81,7 +81,7 @@ public class Index {
 //				@Default("125") Byte tt,
 //				List<Test> t,
 //				@Default("3.2") Integer i,
-				@Composed() User userr,
+//				@Composed() User userr,
 				HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 //		request.setAttribute("name", name);
 //		
@@ -110,7 +110,7 @@ public class Index {
 //		Collections
 //		List<E>
 		
-		Controller.writeSimpleText(response, userr);
+//		Controller.writeSimpleText(response, userr);
 //		Controller.writeSimpleText(response, "name: " +name +", age: " +age +"\nuser: "+user);
 	}
 	

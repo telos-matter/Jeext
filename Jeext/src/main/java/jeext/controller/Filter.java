@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jeext.controller.core.Access;
-import jeext.controller.core.HttpMethod;
+import jeext.controller.core.HTTPMethod;
 import jeext.controller.core.annotations.WebMapping;
 import jeext.controller.core.mapping.Mapping;
 import jeext.controller.core.param.validators.Validator;
@@ -98,7 +98,7 @@ public class Filter extends HttpFilter {
 	 * or {@link HttpServlet} then
 	 * a {@link HttpServletResponse#SC_NOT_FOUND} error is sent
 	 * <li>If a request is made to an existing {@link WebMapping}
-	 * but with the wrong {@link HttpMethod}
+	 * but with the wrong {@link HTTPMethod}
 	 * a {@link HttpServletResponse#SC_METHOD_NOT_ALLOWED} error
 	 * is sent
 	 * <li>If the {@link User} does not validate the specified
@@ -153,7 +153,7 @@ public class Filter extends HttpFilter {
 				User user = (User) session.getAttribute("user");
 				
 				Mapping mapping;
-				HttpMethod method = HttpMethod.valueOf(request.getMethod());
+				HTTPMethod method = HTTPMethod.valueOf(request.getMethod());
 				
 				if (Controller.mappingExists(path)) {
 					mapping = Controller.getMapping(path, method);

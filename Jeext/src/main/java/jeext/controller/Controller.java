@@ -20,7 +20,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jeext.controller.core.Access;
-import jeext.controller.core.HttpMethod;
+import jeext.controller.core.HTTPMethod;
 import jeext.controller.core.Path;
 import jeext.controller.core.annotations.WebController;
 import jeext.controller.core.annotations.WebMapping;
@@ -29,9 +29,9 @@ import jeext.controller.core.exceptions.InvalidParameter;
 import jeext.controller.core.mapping.Mapping;
 import jeext.controller.core.mapping.MappingCollection;
 import jeext.controller.core.mapping.exceptions.InvalidMappingMethod;
-import jeext.controller.core.util.BooleanEnum;
-import jeext.controller.core.util.JMap;
-import jeext.controller.core.util.exceptions.UnhandledException;
+import jeext.controller.util.BooleanEnum;
+import jeext.controller.util.JMap;
+import jeext.controller.util.exceptions.UnhandledException;
 import jeext.util.exceptions.PassedNull;
 import jeext.util.exceptions.UnhandledDevException;
 import models.permission.Permission;
@@ -129,10 +129,10 @@ public final class Controller extends HttpServlet {
    		mappings = new JMap <> ();
    		loadMappings();
    		
-//   		System.out.println("Loaded mappings: " +mappings.size());
-//   		for (var entry: mappings.entrySet()) {
-//   			System.out.println("-> " +entry); // To debug if needed
-//   		}
+   		System.out.println("Loaded mappings: " +mappings.size());
+   		for (var entry: mappings.entrySet()) {
+   			System.out.println("-> " +entry); // To debug if needed
+   		}
    	}
    	
    	/**
@@ -239,7 +239,7 @@ public final class Controller extends HttpServlet {
    					WebMapping webMappingAnnotation = method.getAnnotation(WebMapping.class);
    					
    					String path;
-   					HttpMethod httpMethod = webMappingAnnotation.method();
+   					HTTPMethod httpMethod = webMappingAnnotation.method();
    					
    					Access access;
    					Permission [] permissions;
@@ -405,10 +405,10 @@ public final class Controller extends HttpServlet {
 
 	/**
 	 * @return	the {@link Mapping} that takes care of that
-	 * {@link Path} for that {@link HttpMethod}, or <code>null</code>
+	 * {@link Path} for that {@link HTTPMethod}, or <code>null</code>
 	 * if there is none
 	 */
-	public static Mapping getMapping (String path, HttpMethod method) {
+	public static Mapping getMapping (String path, HTTPMethod method) {
 		MappingCollection mappingCollection = mappings.getEquals(path);
 		if (mappingCollection != null) {
 			return mappingCollection.getMapping(method);

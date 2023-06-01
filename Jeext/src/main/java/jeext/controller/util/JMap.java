@@ -1,4 +1,4 @@
-package jeext.controller.core.util;
+package jeext.controller.util;
 
 import java.util.HashMap;
 import java.util.Map;

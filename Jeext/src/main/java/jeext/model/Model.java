@@ -116,7 +116,7 @@ public abstract class Model <T extends Model <T>> {
 	/**
 	 * Facilitates class/table level DAO methods
 	 */
-	protected class ClassAccessor {
+	public class ClassAccessor {
 		
 		/**
 		 * Calls upon {@link Manager#selectAll(Class)}

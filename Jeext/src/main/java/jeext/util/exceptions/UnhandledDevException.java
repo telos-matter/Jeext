@@ -1,6 +1,6 @@
 package jeext.util.exceptions;
 
-import jeext.controller.core.util.exceptions.UnhandledException;
+import jeext.controller.util.exceptions.UnhandledException;
 
 /**
 * Different than {@link UnhandledException}

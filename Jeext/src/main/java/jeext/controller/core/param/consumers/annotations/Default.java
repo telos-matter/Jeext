@@ -14,8 +14,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
 import jeext.controller.core.param.Param;
-import jeext.controller.core.param.composer.annotations.Composed;
-import jeext.controller.core.param.composer.annotations.ModelId;
+import jeext.controller.core.param.annotations.MID;
+import jeext.controller.core.param.annotations.composer.Composed;
 import jeext.controller.core.param.consumers.Consumer;
 import jeext.controller.core.param.consumers.DefaultConsumer;
 import jeext.controller.core.param.consumers.DefaultModelConsumer;
@@ -38,7 +38,7 @@ import jeext.util.Parser;
  * <li>{@link Model} - Write the ID by which to retrieve this {@link Model} from the DB
  * using the {@link Manager}. In order for it to work it is required
  * to identify which {@link Field}
- * in the {@link Model}s' {@link Class} is the ID with the {@link ModelId} {@link Annotation},
+ * in the {@link Model}s' {@link Class} is the ID with the {@link MID} {@link Annotation},
  * in addition that {@link Field}s' type should be one of these types:
  * {@link Number} (of course one of the subclasses
  * , such as {@link Integer}, {@link Float}.. and not the {@link Number}

@@ -1,4 +1,4 @@
-package jeext.controller.core.param.composer.annotations;
+package jeext.controller.core.param.annotations.composer;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -8,10 +8,6 @@ import java.lang.annotation.Target;
 
 @Retention(RUNTIME)
 @Target(FIELD)
-public @interface ModelId {
+public @interface Ignore {
 
-	String value () default ""; // name to retrieve with
-	
-	boolean useSetter () default true;
-	
 }

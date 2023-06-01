@@ -1,4 +1,4 @@
-package jeext.controller.core.util.exceptions;
+package jeext.controller.util.exceptions;
 
 /**
  * @see #UnhandledException(Throwable)

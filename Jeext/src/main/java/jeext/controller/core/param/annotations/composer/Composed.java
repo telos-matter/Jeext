@@ -1,4 +1,4 @@
-package jeext.controller.core.param.composer.annotations;
+package jeext.controller.core.param.annotations.composer;
 
 import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -10,7 +10,6 @@ import java.lang.annotation.Target;
 @Target(PARAMETER)
 public @interface Composed {
 	
-	String value () default "";
 	// add ignore id
 	boolean requireAll () default true; // all fields are required, if they are not here then invalid 
 	

@@ -19,6 +19,7 @@ public class DefaultModelConsumer implements Consumer {
 	private Object id;
 	
 	private DefaultModelConsumer (Class <?> type, Object id) {
+		// FIXME use model.clazz.find instead, that way it doesn't depend on the manager and the user is free to change the manager
 		this.type = type;
 		this.id = id;
 	}
