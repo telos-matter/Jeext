@@ -8,24 +8,20 @@ import jeext.controller.core.param.validators.Validator;
 public class InvalidParameter extends Exception {
 	private static final long serialVersionUID = 1L;
 
-	private Param param;
-	private Validator validator;
+	public final Param param;
+	public final String reason;
 	
-	public InvalidParameter(Param param, Validator validator) {
+	public InvalidParameter(Param param, String reason) {
 		this.param = param;
-		this.validator = validator;
+		this.reason = reason;
 	}
 	
-	public InvalidParameter ( ) {
-		this(null, null);
+	public InvalidParameter (String reason) {
+		this(null, reason);
 	}
-
-	public Param getParam() {
-		return param;
-	}
-
-	public Validator getValidator() {
-		return validator;
+	
+	public InvalidParameter () {
+		this (null, null);
 	}
 
 }

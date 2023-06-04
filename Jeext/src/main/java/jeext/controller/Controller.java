@@ -33,7 +33,7 @@ import jeext.controller.util.BooleanEnum;
 import jeext.controller.util.JMap;
 import jeext.controller.util.exceptions.UnhandledException;
 import jeext.util.exceptions.PassedNull;
-import jeext.util.exceptions.UnhandledDevException;
+import jeext.util.exceptions.UnhandledJeextException;
 import models.permission.Permission;
 
 // TODO maybe add file to params, and check if servlets do indeed work fine with the new allow servlet thing, along side their filter
@@ -333,7 +333,7 @@ public final class Controller extends HttpServlet {
    				} catch (InvocationTargetException e) {
    					throw new UnhandledException(e);
    				} catch (IllegalAccessException | IllegalArgumentException e) {
-   					throw new UnhandledDevException(e);
+   					throw new UnhandledJeextException(e);
    				}
    				
    			} catch (NoSuchMethodException e) {
@@ -370,6 +370,7 @@ public final class Controller extends HttpServlet {
 	 * would send a {@link HttpServletRequest#SC_INTERNAL_SERVER_ERROR} error
 	 * @throws IOException if {@link HttpServletResponse#sendError(int)} throws one
 	 */
+	// TODO update doc for throws
 	private static void invokeMapping (Mapping mapping, HttpServletRequest request, HttpServletResponse response) throws IOException {
 		PassedNull.check(mapping, Mapping.class);
 		
@@ -379,9 +380,8 @@ public final class Controller extends HttpServlet {
 			
 		} catch (InvalidParameter e) {
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-			
-		} catch (Throwable cause) {
-			throw new UnhandledException(cause);
+		} catch (InvocationTargetException e) {
+			throw new UnhandledException(e);
 		}
 	}
 	

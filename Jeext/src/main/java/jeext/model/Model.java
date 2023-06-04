@@ -6,7 +6,7 @@ import java.util.UUID;
 import jeext.dao.Manager;
 import jeext.util.MCollections;
 import models.User;
-
+// TODO update to mention the MID n anything else
 /**
  * <p>The base abstract class that all models in the application <i>should</i>
  * extend.

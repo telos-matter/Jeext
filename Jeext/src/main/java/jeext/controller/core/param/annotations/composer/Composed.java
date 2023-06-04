@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Retention(RUNTIME)
 @Target(PARAMETER)
 public @interface Composed {
-	
+	// if the name annotation is used, should it override the id field name regardless of retrievefirst?
 	// add ignore id
 	boolean requireAll () default true; // all fields are required, if they are not here then invalid 
 	

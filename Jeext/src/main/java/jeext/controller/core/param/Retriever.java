@@ -2,6 +2,7 @@ package jeext.controller.core.param;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -21,7 +22,7 @@ import jeext.model.Model;
 import jeext.util.Parser;
 import jeext.util.exceptions.FailedAssertion;
 import jeext.util.exceptions.PassedNull;
-import jeext.util.exceptions.UnhandledDevException;
+import jeext.util.exceptions.UnhandledJeextException;
 import jeext.util.exceptions.UnsupportedType;
 
 // Basically param, but withouth validators or consumers
@@ -40,40 +41,6 @@ public class Retriever {
 	
 	protected Class <?> idType;
 	protected IDKind idKind;
-	
-//	TODO Commented out until commit
-//	protected Retriever(String name, Class <?> type, Multiplicity multiplicity, Kind kind, Class <?> idType, IDKind idKind) {
-//		PassedNull.check(name, String.class);
-//		PassedNull.check(type, Class.class);
-//		PassedNull.check(multiplicity, Multiplicity.class);
-//		PassedNull.check(kind, Kind.class);
-//
-//		if (kind != Kind.MODEL && (idType != null || idKind != null)) {
-//			throw new FailedAssertion(String.format("Illegal arguments combination; kind: `%s`, idType: `%s`, idKind: `%s`", kind, idType, idKind));
-//		}
-//		
-//		if (kind == Kind.MODEL && (idType == null || idKind == null)) {
-//			throw new FailedAssertion(String.format("Illegal arguments combination; kind: `%s`, idType: `%s`, idKind: `%s`", kind, idType, idKind));
-//		}
-//		
-//		if (!isTypeSupported(type)) {
-//			throw new UnsupportedType(type);
-//		}
-//		
-//		if (kind == Kind.MODEL && !isIDTypeSupported(idType)) {
-//			throw new UnsupportedType(idType);
-//		}
-//		
-//		this.name = name;
-//		
-//		this.type = type;
-//		this.multiplicity = multiplicity;
-//		
-//		this.kind = kind;
-//		
-//		this.idType = idType;
-//		this.idKind = idKind;
-//	}
 	
 	protected Retriever (Parameter parameter) throws FailedParamInit {
 		name = (parameter.isAnnotationPresent(Name.class))? parameter.getAnnotation(Name.class).value() : parameter.getName();
@@ -155,6 +122,10 @@ public class Retriever {
 			throw new FailedParamInit("(" +owner  +") Primitives aren't allowed, use their Object representation instead.");
 		}
 		
+		if (Modifier.isAbstract(type.getModifiers())) {
+			throw new FailedParamInit("(" +owner  +") Can't use abstract classes");
+		}
+		
 		if (!Retriever.isTypeSupported(type)) {
 			throw new FailedParamInit("(" +owner  +") Unsuported type `" +type +"`");
 		}
@@ -172,7 +143,7 @@ public class Retriever {
 
 	private Class <?> validateModelAndGetIdType (Object owner) throws FailedParamInit {
 		if (kind != Kind.MODEL) {
-			throw new FailedAssertion("Kind is not model for (" +owner  +") , instead: " +kind);
+			throw new FailedAssertion("Kind is not model for `" +owner  +"` , instead: " +kind);
 		}
 		
 		List <Field> id = Arrays
@@ -200,7 +171,7 @@ public class Retriever {
 
 	private void determineIdKind(Object owner) {
 		if (kind != Kind.MODEL) {
-			throw new FailedAssertion("Kind is not modelfor (" +owner  +") , instead: " +kind);
+			throw new FailedAssertion("Kind is not model for `" +owner  +"` , instead: " +kind);
 		}
 		
 		if (Enum.class.isAssignableFrom(idType)) {
@@ -308,8 +279,8 @@ public class Retriever {
 				throw new UnsupportedType(multiplicity);
 			}
 			
-		} catch (Exception e) { // In case I missed something with all the casting going on
-			throw new UnhandledDevException(e);
+		} catch (ClassCastException e) {
+			throw new UnhandledJeextException(e);
 		}
 	}
 	
@@ -422,7 +393,7 @@ public class Retriever {
 		} catch (IllegalArgumentException e) {
 			return null;
 		} catch (Exception e) {
-			throw new UnhandledDevException(e);
+			throw new UnhandledJeextException(e);
 		}
 	}
 	
@@ -449,6 +420,12 @@ public class Retriever {
 	protected static enum IDKind {
 		PRIMITIVE,
 		ENUM;
+	}
+
+	@Override
+	public String toString() {
+		return "Retriever [name=" + name + ", type=" + type + ", multiplicity=" + multiplicity + ", kind=" + kind
+				+ ", idType=" + idType + ", idKind=" + idKind + "]";
 	}
 	
 }

@@ -26,6 +26,8 @@ import jeext.model.Model;
  * it refers to the id ({@link MID})
  * <p><b>Know that</b> in order for the default case to work
  * you need to specify the `-parameters` options to the compiler
+ * 
+ * @see Composed
  */
 @Retention(RUNTIME)
 @Target(PARAMETER)

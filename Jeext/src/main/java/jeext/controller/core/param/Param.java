@@ -20,13 +20,14 @@ import jeext.controller.core.param.validators.annotations.*;
 import jeext.dao.Manager;
 import jeext.model.Model;
 import jeext.util.Dates.PeriodHolder;
-import jeext.util.exceptions.UnhandledDevException;
+import jeext.util.exceptions.UnhandledJeextException;
 import jeext.util.exceptions.UnsupportedType;
 import jeext.util.Parser;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
@@ -107,20 +108,35 @@ public class Param {
 	}
 	
 	private void processAnnotations (Class <?> webController, Method method, Parameter parameter) {
-		if (parameter.isAnnotationPresent(Required.class) &&
-				parameter.getAnnotation(Required.class).value() &&
-				parameter.isAnnotationPresent(Default.class)) {
-			throw new InvalidMappingMethodParam(webController, method, parameter, "Required and Default are mutually exclusive");
-		} // TODO add check for composed, mutually exclusive
+		int count = 0;
 		
-//		processValidators(webController, method, parameter);
-//		processConsumers(webController, method, parameter);
+		count += parameter.isAnnotationPresent(Default.class)? 1 : 0;
+		count += parameter.isAnnotationPresent(Composed.class)? 1 : 0;
+		count += (parameter.isAnnotationPresent(Required.class) &&
+				parameter.getAnnotation(Required.class).value())? 1 : 0;
+		
+		if (count > 1) {
+			throw new InvalidMappingMethodParam(webController, method, parameter, "The `" +Required.class +"`, `" +Default.class +"` and `" +Composed.class +"` annotations are mutually exclusive");
+		}
+		
+		processValidators(webController, method, parameter);
+		processConsumers(webController, method, parameter);
 	}
 
-	// TODO check nature first
 	private void processValidators (Class <?> webController, Method method, Parameter parameter) {
+		if (nature == Nature.COMPOSED) {
+			checkAnnotations(webController, method, parameter, ALL_VALIDATORS);
+			validators = new Validator [0];
+			return;
+		}
+		
 		List <Validator> _validators = new ArrayList <> ();
 		
+		/**
+		 * No need to check if Composed is not present, because
+		 * if it is composed the method is short circuited
+		 * from the get go
+		 */
 		if (!parameter.isAnnotationPresent(Default.class) &&
 				(!parameter.isAnnotationPresent(Required.class) || parameter.getAnnotation(Required.class).value())) {
 			_validators.add(RequiredValidator.GET());
@@ -377,6 +393,12 @@ public class Param {
 	}
 	
 	private void processConsumers (Class <?> webController, Method method, Parameter parameter) {
+		if (nature == Nature.COMPOSED) {
+			checkAnnotations(webController, method, parameter, ALL_CONSUMERS);
+			consumers = new Consumer [0];
+			return;
+		}
+		
 		List <Consumer> _consumers = new ArrayList <> ();
 		
 		switch (retriever.multiplicity) {
@@ -561,7 +583,7 @@ public class Param {
 	
 	@SafeVarargs
 	private static void checkAnnotations (Class <?> webController, Method method, Parameter parameter, Set <Class <? extends Annotation>> all, Class <? extends Annotation> ... possible) {
-		for (Annotation annotation : parameter.getAnnotations()) {
+		for (Annotation annotation : parameter.getDeclaredAnnotations()) {
 			Class <? extends Annotation> annotationClass = annotation.annotationType();
 			
 			if (all.contains(annotationClass) && !Arrays.stream(possible).anyMatch(annotationClass::equals)) {
@@ -570,13 +592,17 @@ public class Param {
 		}
 	}
 	
-	public Object getParam (HttpServletRequest request) throws InvalidParameter {
+	public Object getParam (HttpServletRequest request) throws InvalidParameter, InvocationTargetException {
 		try {
 			Object value;
 			
 			switch (nature) {
 			case RETRIEVED:
 				value = retriever.retrieve(request);
+				
+				validate(value);
+				value = consume(value);
+				
 				break;
 				
 			case COMPOSED:
@@ -587,29 +613,26 @@ public class Param {
 				throw new UnsupportedType(nature);
 			}
 			
-			// Right now, these two lines should be only in the retrieved case, since there is no validator or consumer that goes on composed params
-//			validate(value);
-//			value = consume(value);
 			return value;
 			
-//		} catch (InvalidParameter e) {
-//			throw e;
-		} catch (Exception e) { // TODO, remove, composed may throw invocation target exception
-			throw new UnhandledDevException(e);
+		} catch (InvocationTargetException | InvalidParameter e) {
+			throw e;
+		} catch (ClassCastException e) {
+			throw new UnhandledJeextException(e);
 		}
 	}
 	
 	private void validate (Object value) throws InvalidParameter {
-		for (Validator validator : validators) { // FIXME, yak almrdi, using arrays and what not wflkhr going with foreach
-			if (!validator.validate(value)) {
-				throw new InvalidParameter(this, validator);
+		for (int i = 0; i < validators.length; i++) {
+			if (!validators[i].validate(value)) {
+				throw new InvalidParameter(this, "Failed this validator `" +validators[i] +"`");
 			}
 		}
 	}
 	
 	private Object consume (Object value) {
-		for (Consumer consumer : consumers) { // FIXME simple loop
-			value = consumer.consume(value);
+		for (int i = 0; i < consumers.length; i++) {
+			value = consumers[i].consume(value);
 		}
 		
 		return value;

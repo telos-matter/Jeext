@@ -11,7 +11,7 @@ import java.util.Objects;
 
 import jeext.model.Model;
 import jeext.util.exceptions.FailedRequirement;
-import jeext.util.exceptions.UnhandledDevException;
+import jeext.util.exceptions.UnhandledJeextException;
 import models.User;
 
 /**
@@ -154,7 +154,7 @@ public class MCollections {
 				return null;
 				
 			} catch (IllegalAccessException | IllegalArgumentException e) {
-				throw new UnhandledDevException(e);
+				throw new UnhandledJeextException(e);
 			} catch (InvocationTargetException e) {
 				throw new RuntimeException(e);
 			}

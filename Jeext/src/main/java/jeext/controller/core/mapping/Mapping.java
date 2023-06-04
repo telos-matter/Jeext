@@ -1,6 +1,7 @@
 package jeext.controller.core.mapping;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
@@ -19,7 +20,7 @@ import jeext.controller.core.annotations.WebMapping;
 import jeext.controller.core.exceptions.InvalidParameter;
 import jeext.controller.core.mapping.exceptions.InvalidMappingMethod;
 import jeext.controller.core.param.Param;
-import jeext.util.exceptions.UnhandledDevException;
+import jeext.util.exceptions.UnhandledJeextException;
 import jeext.util.exceptions.UnsupportedType;
 import models.User;
 import models.permission.Permission;
@@ -132,9 +133,10 @@ public class Mapping {
 	 * only place from which this method is called
 	 * 
 	 * @throws InvalidParameter	if one of the {@link Param}s throws one to indicate that the request's parameters do not fulfill the requirements
-	 * @throws Throwable	if the underlying {@link Method} throws any {@link Exception}
+	 * @throws Exception	if the underlying {@link Method} throws any {@link Exception}, or any of the {@link Method}s used in the {@link Param}s
 	 */
-	public void invoke (HttpServletRequest request, HttpServletResponse response) throws InvalidParameter, Throwable {
+	// TODO update doc for throws
+	public void invoke (HttpServletRequest request, HttpServletResponse response) throws InvalidParameter, InvocationTargetException {
 		Object [] parameters = new Object [params.length +2];
 		
 		parameters[parameters.length -2] = request;
@@ -149,7 +151,7 @@ public class Mapping {
 			method.invoke(null, parameters);
 			
 		} catch (IllegalAccessException | IllegalArgumentException  e) {
-			throw new UnhandledDevException(e);
+			throw new UnhandledJeextException(e);
 		} 
 	}
 	

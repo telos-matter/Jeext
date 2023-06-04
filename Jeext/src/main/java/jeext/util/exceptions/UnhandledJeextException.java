@@ -7,14 +7,15 @@ import jeext.controller.util.exceptions.UnhandledException;
 * 
 * @see FailedAssertion
 */
-public class UnhandledDevException extends FailedAssertion {
+public class UnhandledJeextException extends FailedAssertion {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * @see UnhandledDevException
+	 * @see UnhandledJeextException
 	 */
-	public UnhandledDevException (Exception e) {
-		super ("Unhandled exception: " +e);
+	public UnhandledJeextException (Exception e) {
+		super ("Unhandled Jeext exception: " +e);
+		e.printStackTrace();
 	}
 
 }
