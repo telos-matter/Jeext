@@ -6,7 +6,7 @@ A, Spring inspired, JEE framework
 <a href="Jeext/src/main/java/controllers/Index.java">example</a>
 
 
-Currently in testing-mode / quite statically implemented
+Currently in testing-mode
 
 
 Documentation is on the way
