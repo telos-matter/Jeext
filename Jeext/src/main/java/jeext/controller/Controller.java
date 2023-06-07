@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -48,6 +49,13 @@ import models.permission.Permission;
  * MENTION not really tomcat specific since its how war files are
  * ^^^ put in jeext
  */
+// MENTION confuiger however u like, just dont remove it
+
+@MultipartConfig ( //CONSIDER do i need this?YES I DO
+		  fileSizeThreshold = 1024 * 1024 * 1, // def 0
+		  maxFileSize = 1024 * 1024 * 10, // -1 for unlimited
+		  maxRequestSize = 1024 * 1024 * 50 // -1 for ulimited,
+		)
 @WebServlet("/controller/*")
 public final class Controller extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -129,10 +137,10 @@ public final class Controller extends HttpServlet {
    		mappings = new JMap <> ();
    		loadMappings();
    		
-   		System.out.println("Loaded mappings: " +mappings.size());
-   		for (var entry: mappings.entrySet()) {
-   			System.out.println("-> " +entry); // To debug if needed
-   		}
+//   		System.out.println("Loaded mappings: " +mappings.size());
+//   		for (var entry: mappings.entrySet()) {
+//   			System.out.println("-> " +entry); // To debug if needed
+//   		}
    	}
    	
    	/**
@@ -265,7 +273,7 @@ public final class Controller extends HttpServlet {
    					}
    					
    					if (servlets.containsKeyEquals(path)) {
-   						throw new InvalidMappingMethod(webController, method, "The path `" +path +"` is already taken by this servlet `" +servlets.getEquals(path) +"`.");
+   						throw new InvalidMappingMethod(webController, method, "The path `" +path +"` is already taken by this servlet `" +servlets.getEquals(path) +"`");
    					}
    					
    					MappingCollection collection = mappings.getEquals(path);

@@ -1,5 +1,6 @@
 package jeext.controller.core.param;
 
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -9,14 +10,20 @@ import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Part;
 import jeext.controller.core.param.Param.FailedParamInit;
 import jeext.controller.core.param.annotations.MID;
 import jeext.controller.core.param.annotations.Name;
 import jeext.controller.core.param.annotations.composer.ComposeWith;
+import jeext.controller.core.param.types.FileType;
+import jeext.controller.util.exceptions.UnhandledException;
 import jeext.dao.Manager;
 import jeext.model.Model;
 import jeext.util.Parser;
@@ -126,7 +133,7 @@ public class Retriever {
 			throw new FailedParamInit("(" +owner  +") Can't use abstract classes");
 		}
 		
-		if (!Retriever.isTypeSupported(type)) {
+		if (!isTypeSupported(type)) {
 			throw new FailedParamInit("(" +owner  +") Unsuported type `" +type +"`");
 		}
 	}
@@ -136,6 +143,8 @@ public class Retriever {
 			kind = Kind.MODEL;
 		} else if (Enum.class.isAssignableFrom(type)) {
 			kind = Kind.ENUM;
+		} else if (FileType.class.equals(type)) {
+			kind = Kind.FILE;
 		} else {
 			kind = Kind.PRIMITIVE;
 		}
@@ -164,7 +173,7 @@ public class Retriever {
 			throw new FailedParamInit("(" +owner  +") Primitives can't be used as a models' id, use their Object representation instead");
 		}
 		
-		if (!Retriever.isIDTypeSupported(idType)) {
+		if (!isIDTypeSupported(idType)) {
 			throw new FailedParamInit("(" +owner  +") Unsuported model id type `" +idType +"`");
 		}
 	}
@@ -188,6 +197,7 @@ public class Retriever {
 				Number.class.isAssignableFrom(type) ||
 				Model.class.isAssignableFrom(type) ||
 				Enum.class.isAssignableFrom(type) ||
+				FileType.class.equals(type) ||
 				LocalDate.class.equals(type) ||
 				Boolean.class.equals(type) ||
 				Character.class.equals(type) ||
@@ -231,6 +241,9 @@ public class Retriever {
 				case PRIMITIVE:
 					return getParameter(name, type, request);
 					
+				case FILE:
+					return getFile(name, request);
+					
 				case ENUM:
 					return getEnum(name, type, request);
 					
@@ -246,6 +259,9 @@ public class Retriever {
 				switch (kind) {
 				case PRIMITIVE:
 					return getParameters(name, type, request);
+					
+				case FILE:
+					return getFiles(name, request);
 					
 				case ENUM:
 					return getEnums(name, type, request);
@@ -263,12 +279,15 @@ public class Retriever {
 				case PRIMITIVE: 
 					yield getParameters(name, type, request);
 					
+				case FILE:
+					yield getFiles(name, request);
+					
 				case ENUM:
 					yield getEnums(name, type, request);
 					
 				case MODEL:
 					yield getEntities(name, type, idType, idKind, request);
-					
+				
 				default:
 					throw new UnsupportedType(kind);
 				};
@@ -283,7 +302,7 @@ public class Retriever {
 			throw new UnhandledJeextException(e);
 		}
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	private static <T> List <T> constructList (Object array, Class <T> type) {
 		if (array == null) {
@@ -353,7 +372,47 @@ public class Retriever {
 		}
 		return enums;
 	}
-
+	
+	private static FileType getFile (String name, HttpServletRequest request) {
+		try {
+			Part part = request.getPart(name);
+			if (part == null) {
+				return null;
+			}
+			
+			return new FileType(part);
+			
+		} catch (IOException e) { // FileType and getPart
+			return null;
+			
+		} catch (ServletException | IllegalStateException e) { // getPart
+			throw new UnhandledException(e);
+		}
+	}
+	private static FileType [] getFiles (String name, HttpServletRequest request) {
+		try {
+			ArrayList <FileType> files = new ArrayList <> ();
+			
+			for (Part part : request.getParts()) {
+				if (name.equals(part.getName())) {
+					try {
+						files.add(new FileType(part));
+					} catch (IOException e) { // FileType
+						files.add(null);
+					}
+				}
+			}
+			
+			return files.toArray(new FileType [files.size()]);
+			
+		} catch (IOException e) { // getParts
+			return null;
+			
+		} catch (ServletException | IllegalStateException e) {
+			throw new UnhandledException(e);
+		}
+	}
+	
 	private static <T> T getParameter (String name, Class <T> type, HttpServletRequest request) {
 		String parameter = request.getParameter(name);
 		return parse(parameter, type);
@@ -413,6 +472,7 @@ public class Retriever {
 	
 	protected static enum Kind {
 		PRIMITIVE,
+		FILE,
 		ENUM,
 		MODEL;
 	}

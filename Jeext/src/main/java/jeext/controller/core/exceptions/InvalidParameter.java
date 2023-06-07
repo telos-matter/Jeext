@@ -1,7 +1,6 @@
 package jeext.controller.core.exceptions;
 
 import jeext.controller.core.param.Param;
-import jeext.controller.core.param.validators.Validator;
 
 // TODO document
 // Not runtimeexcpetion intentionally

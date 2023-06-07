@@ -15,6 +15,7 @@ import jeext.controller.core.param.annotations.Name;
 import jeext.controller.core.param.annotations.composer.Composed;
 import jeext.controller.core.param.consumers.*;
 import jeext.controller.core.param.consumers.annotations.*;
+import jeext.controller.core.param.types.FileType;
 import jeext.controller.core.param.validators.*;
 import jeext.controller.core.param.validators.annotations.*;
 import jeext.dao.Manager;
@@ -145,6 +146,7 @@ public class Param {
 		switch (retriever.multiplicity) {
 		case SINGLE:
 			
+		{
 			if (String.class.equals(retriever.type)) {
 
 				checkAnnotations(webController, method, parameter, ALL_VALIDATORS, Required.class, NonBlank.class, Min.class, Max.class, Regex.class, Email.class, Alphabetic.class, Alphanumeric.class);
@@ -325,10 +327,35 @@ public class Param {
 			} else if (Enum.class.isAssignableFrom(retriever.type)) {
 				
 				checkAnnotations(webController, method, parameter, ALL_VALIDATORS, Required.class);
+			
+			} else if (FileType.class.equals(retriever.type)) {
+				
+				checkAnnotations(webController, method, parameter, ALL_VALIDATORS, Required.class, Max.class, Min.class);
+				
+				Min min = parameter.getAnnotation(Min.class);
+				if (min != null) {
+					long value = (long) min.value();
+					if (value != min.value() || value < 0) {
+						throw new InvalidMappingMethodParamValidator(webController, method, parameter, min, "Must be a positive or null integer value");
+					}
+					
+					_validators.add(MinFileValidator.GET(value, min.strict()));
+				}
+				
+				Max max = parameter.getAnnotation(Max.class);
+				if (max != null) {
+					long value = (long) max.value();
+					if (value != max.value() || value < 0) {
+						throw new InvalidMappingMethodParamValidator(webController, method, parameter, max, "Must be a positive or null integer value");
+					}
+					
+					_validators.add(MaxFileValidator.GET(value, max.strict()));
+				}
 				
 			} else {
 				throw new UnsupportedType(retriever.type);
 			}
+		}
 			
 			break;
 		case ARRAY:
@@ -391,6 +418,7 @@ public class Param {
 		
 		this.validators = _validators.toArray(new Validator [_validators.size()]);
 	}
+	// TODO do please go over the validators and consumers and check those that still use set if they are actually using hashable object
 	
 	private void processConsumers (Class <?> webController, Method method, Parameter parameter) {
 		if (nature == Nature.COMPOSED) {
@@ -404,6 +432,7 @@ public class Param {
 		switch (retriever.multiplicity) {
 		case SINGLE:
 			
+		{
 			if (String.class.equals(retriever.type)) {
 
 				checkAnnotations(webController, method, parameter, ALL_CONSUMERS, Default.class, Capitalize.class, UpperCase.class, LowerCase.class);
@@ -554,10 +583,15 @@ public class Param {
 
 					_consumers.add(DefaultConsumer.GET(value));
 				}
+		
+			} else if (FileType.class.equals(retriever.type)) {
+				
+				checkAnnotations(webController, method, parameter, ALL_CONSUMERS);
 				
 			} else {
 				throw new UnsupportedType(retriever.type);
 			}
+		}
 			
 			break;
 		case ARRAY:

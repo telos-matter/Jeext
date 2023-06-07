@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jeext.controller.core.exceptions.InvalidParameter;
 import jeext.controller.core.param.Param.FailedParamInit;
 import jeext.controller.core.param.Retriever.Kind;
+import jeext.controller.core.param.annotations.MID;
 import jeext.controller.core.param.annotations.composer.ComposeWith;
 import jeext.controller.core.param.annotations.composer.Composed;
 import jeext.controller.core.param.annotations.composer.Ignore;
@@ -63,7 +64,18 @@ public class Composer {
 			}
 			
 			try {
-				_fieldRetrievers.add(new FieldRetriever(retriever.type, field));
+				FieldRetriever fieldRetriever = new FieldRetriever(retriever.type, field);
+				
+				if (field.isAnnotationPresent(MID.class)) {
+					if (composed.ignoreID()) {
+						continue;
+					}
+					
+					fieldRetriever.retriever.name = retriever.name;
+				}
+				
+				_fieldRetrievers.add(fieldRetriever);
+				
 			} catch (FailedParamInit e) {
 				if (field.isAnnotationPresent(ComposeWith.class)) {
 					throw e;
@@ -179,6 +191,7 @@ public class Composer {
 		 * {@link Parameter}, or <code>null</code> if there is none matching
 		 * the description
 		 */
+		// TODO add check for generic type in case of lists and arrays
 		private static Method getSetterMethod (Class <?> clazz, Class <?> type, String name) {
 			try {
 				Method method = clazz.getDeclaredMethod(name, type);

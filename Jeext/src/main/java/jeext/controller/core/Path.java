@@ -2,6 +2,7 @@ package jeext.controller.core;
 
 /**
  * Simple version rn 
+ *  no URL-encoded parameters
  * TODO implement the * version, keep in mind /xxx/* == /xxx (Maybe not sure)
  */
 public class Path {

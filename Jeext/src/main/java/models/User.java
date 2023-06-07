@@ -11,6 +11,8 @@ import javax.persistence.Table;
 
 import jeext.controller.Filter;
 import jeext.controller.core.param.annotations.MID;
+import jeext.controller.core.param.annotations.composer.ComposeWith;
+import jeext.controller.core.param.annotations.composer.Ignore;
 import jeext.model.Model;
 import jeext.util.Strings;
 import models.permission.Permission;
