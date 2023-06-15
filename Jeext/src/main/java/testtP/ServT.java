@@ -22,55 +22,8 @@ import jakarta.servlet.http.Part;
 public class ServT extends HttpServlet{
 // TODO delete on comiti comity
 	private static void m (HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-		System.out.println("In method");
-		System.out.println("params:");
-		for (var entry : request.getParameterMap().entrySet()) {
-			System.out.println("\t"+entry);
-		}
-		Part p = request.getPart("file"); // first one if they have same name
-		System.out.println("special p:" +p);
-		System.out.println(p.getSize());
-		System.out.println("name " +p.getSubmittedFileName());
-		System.out.println("stream? " +toStr(p.getInputStream()));
-		
-		// is a file always contained within a single part?
-		//a single file is always within a single part
-		// params are also in their own parts
-		if (request.getContentType().startsWith("multipart")) {
-			Collection<Part> parts = request.getParts();
-			System.out.println("Parts: " +parts);
-			if (parts != null) {
-				System.out.println("size: " +parts.size());
-				for (Part part : parts) {
-					System.out.println("--------------");
-					System.out.println("single part name: " +part.getName());
-					System.out.println("single part: " +part);
-					System.out.println("sub file name: " +part.getSubmittedFileName());
-					System.out.println("content type " +part.getContentType());
-					System.out.println("size " +part.getSize());
-					System.out.println("headers" +part.getHeaderNames());
-					for (String name : part.getHeaderNames()) {
-						System.out.println("\t->" +part.getHeader(name));
-					}
-					System.out.println("stream: " +toStr(part.getInputStream()));
-				}
-			}
-		} else {
-			System.out.println("No multipart");
-		}
-	}
-	
-	private static String toStr (InputStream stream) {
-		String s = "";
-		try {
-			for (byte b : stream.readAllBytes()) {
-				s += b;
-//				s += "" +Integer.toHexString(b & 0xFF);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return s;
+		System.out.println("In m");
+		PartTest.testPart(request);
 	}
 	
 	@Override

@@ -23,6 +23,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jeext.controller.core.Access;
 import jeext.controller.core.HTTPMethod;
 import jeext.controller.core.Path;
+import jeext.controller.core.annotations.MappingConfig;
 import jeext.controller.core.annotations.WebController;
 import jeext.controller.core.annotations.WebMapping;
 import jeext.controller.core.exceptions.InvalidInitMethod;
@@ -51,14 +52,11 @@ import models.permission.Permission;
  */
 // MENTION confuiger however u like, just dont remove it
 
-@MultipartConfig ( //CONSIDER do i need this?YES I DO
-		  fileSizeThreshold = 1024 * 1024 * 1, // def 0
-		  maxFileSize = 1024 * 1024 * 10, // -1 for unlimited
-		  maxRequestSize = 1024 * 1024 * 50 // -1 for ulimited,
-		)
-@WebServlet("/controller/*")
+@WebServlet(Controller.PATH)
 public final class Controller extends HttpServlet {
 	private static final long serialVersionUID = 1L;
+	
+	public static final String PATH = "/controller";
 	
 	/**
 	 * <p>A {@link JMap} of all the URLs and their corresponding
@@ -197,7 +195,7 @@ public final class Controller extends HttpServlet {
         	if (clazz.isAnnotationPresent(WebController.class)) {
         		webControllers.add(clazz);
         	}
-        	if (clazz.isAnnotationPresent(WebServlet.class)) {
+        	if (clazz.isAnnotationPresent(WebServlet.class) && !clazz.isAnnotationPresent(MappingConfig.class)) {
         		loadServlet(clazz);
         	}
         } catch (ClassNotFoundException e) {}
@@ -362,7 +360,7 @@ public final class Controller extends HttpServlet {
 		Mapping mapping = (Mapping) request.getAttribute("mapping");
 		invokeMapping(mapping, request, response);
 	}
-	
+
 	/**
 	 * <p>Called upon by the {@link #service(HttpServletRequest, HttpServletResponse)}
 	 * with the appropriate

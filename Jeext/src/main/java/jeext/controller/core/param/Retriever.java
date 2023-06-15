@@ -15,6 +15,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.tomcat.util.http.fileupload.servlet.ServletFileUpload;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.Part;
@@ -374,6 +376,13 @@ public class Retriever {
 	}
 	
 	private static FileType getFile (String name, HttpServletRequest request) {
+		if (!isMultipart(request)) {
+			System.out.println("it is NOT multipart");
+			return null;
+		} else {
+			System.out.println("it is multipart");
+		}
+		
 		try {
 			Part part = request.getPart(name);
 			if (part == null) {
@@ -389,7 +398,12 @@ public class Retriever {
 			throw new UnhandledException(e);
 		}
 	}
+	
 	private static FileType [] getFiles (String name, HttpServletRequest request) {
+		if (!isMultipart(request)) {
+			return null;
+		}
+		
 		try {
 			ArrayList <FileType> files = new ArrayList <> ();
 			
@@ -411,6 +425,13 @@ public class Retriever {
 		} catch (ServletException | IllegalStateException e) {
 			throw new UnhandledException(e);
 		}
+	}
+	
+	/**
+	 * In case i don't use {@link ServletFileUpload} sometime in the future
+	 */
+	private static boolean isMultipart (HttpServletRequest request) {
+		return ServletFileUpload.isMultipartContent(request);
 	}
 	
 	private static <T> T getParameter (String name, Class <T> type, HttpServletRequest request) {

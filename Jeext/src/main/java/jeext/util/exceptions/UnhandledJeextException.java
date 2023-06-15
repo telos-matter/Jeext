@@ -13,7 +13,7 @@ public class UnhandledJeextException extends FailedAssertion {
 	/**
 	 * @see UnhandledJeextException
 	 */
-	public UnhandledJeextException (Exception e) {
+	public UnhandledJeextException (Throwable e) {
 		super ("Unhandled Jeext exception: " +e);
 		e.printStackTrace();
 	}

@@ -12,6 +12,7 @@ public class UnhandledException extends RuntimeException {
 	 * of the developer, isn't handled 
 	 */
 	public UnhandledException (Throwable type) {
+		super(type);
 		System.err.println("An unhandled exception was thrown:\n");
 		type.printStackTrace();
 	}

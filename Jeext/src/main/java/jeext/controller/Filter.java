@@ -18,10 +18,12 @@ import java.util.Map;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
+import jakarta.servlet.MultipartConfigElement;
 import jakarta.servlet.Servlet;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebFilter;
 
 /**
@@ -127,6 +129,7 @@ public class Filter extends HttpFilter {
 	 * @see Controller
 	 * @see Controller#invokeMapping(Map, HttpServletRequest, HttpServletResponse)
 	 */
+	
 	@Override
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain) throws IOException, ServletException {
 		HttpServletRequest request = (HttpServletRequest) servletRequest;
@@ -187,14 +190,17 @@ public class Filter extends HttpFilter {
 					}
 				}
 				
+				System.out.println("\n\n\n\nFilter");
+				
 				request.setAttribute("mapping", mapping);
-				request.getRequestDispatcher("/controller" + path).forward(request, response);
+				request.getRequestDispatcher(Controller.PATH).forward(request, response);
 				return;
 			}
 			
 		}
 	}
 	
+	// TODO check if there are any left comments
 	/**
 	 * Unused destroy method
 	 */

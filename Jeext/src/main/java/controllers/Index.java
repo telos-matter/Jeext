@@ -39,9 +39,12 @@ public class Index {
 	
 	@WebMapping(value = "/", method = HTTPMethod.POST)
 	public static void hello (
-				@Max (1024 * 1024 * 5) FileType file,
+			@Name("file") @Max (1024 * 1024 * 5) FileType file,
+			@Required(false) String name,
 				HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		System.out.println("In hello "+name);
 		Controller.writeSimpleText(response, "file size= " +file.getLength());
+		
 	}
 	
 }

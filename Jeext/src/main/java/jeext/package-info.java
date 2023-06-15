@@ -6,5 +6,7 @@
  * TODO add package-info for main packages
  * MENTION does not take away from pure jee, u can still use servlet and what not
  * MENTION relatively easy to update to newer version, just swap old pacakge for new one lol
+ * TODO do actually add send param back as attr, case name changed or whatever, + in composed so much work lol
+ * TODO maybe add personalized validator, somehow?
  */
 package jeext;

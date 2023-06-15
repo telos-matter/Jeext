@@ -12,7 +12,7 @@ public class FailedAssertion extends AssertionError {
 	private static final long serialVersionUID = 1L;
 
 	public FailedAssertion (String assertion) {
-		super (assertion +"\nFOR ASSERTION, IF YOU SEE THIS EXCEPTION PLEASE CONTACT THE JEEXT FRAMEWORK DEV");
+		super (assertion +"\nFOR ASSERTION. IF YOU SEE THIS EXCEPTION PLEASE CONTACT THE JEEXT FRAMEWORK DEV");
 	}
 	
 }
