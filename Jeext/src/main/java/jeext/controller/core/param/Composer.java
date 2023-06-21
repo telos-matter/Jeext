@@ -6,6 +6,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,13 +15,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import jeext.controller.core.exceptions.InvalidParameter;
 import jeext.controller.core.param.Param.FailedParamInit;
 import jeext.controller.core.param.Retriever.Kind;
+import jeext.controller.core.param.Retriever.Multiplicity;
 import jeext.controller.core.param.annotations.MID;
 import jeext.controller.core.param.annotations.composer.ComposeWith;
 import jeext.controller.core.param.annotations.composer.Composed;
 import jeext.controller.core.param.annotations.composer.Ignore;
 import jeext.util.Strings;
+import jeext.util.exceptions.FailedAssertion;
 import jeext.util.exceptions.PassedNull;
 import jeext.util.exceptions.UnhandledJeextException;
+import jeext.util.exceptions.UnsupportedType;
 
 public class Composer {
 
@@ -87,8 +92,7 @@ public class Composer {
 		
 		fieldRetrievers = _fieldRetrievers.toArray(new FieldRetriever [_fieldRetrievers.size()]);
 	}
-	// CONSIDER do i need retriever if not retrieve first? keep in mind it does the checking, makhasr walo
-	// also, what about the id field? just ignore it auto? No just like any other field, compose
+	
 	protected Object compose (HttpServletRequest request) throws InvocationTargetException, InvalidParameter {
 		Object model = null;
 		
@@ -139,7 +143,7 @@ public class Composer {
 				
 				if (composeWith.useSetter()) {
 					String setterMethod = (composeWith.setterMethod().isBlank())? "set" +Strings.capitalize(field.getName()) : composeWith.setterMethod();
-					setter = getSetterMethod(clazz, retriever.type, setterMethod);
+					setter = getSetterMethod(clazz, retriever, setterMethod);
 					if (setter == null) {
 						throw new FailedParamInit("Found no appropriate setter method (public, non-static, void returning and takes one parameter that is the same type as the field) under the name `" +setterMethod +"` for the field `" +field +"`");
 					}
@@ -150,7 +154,7 @@ public class Composer {
 				
 			} else {
 				String setterMethod = "set" +Strings.capitalize(field.getName());
-				setter = getSetterMethod(clazz, retriever.type, setterMethod);
+				setter = getSetterMethod(clazz, retriever, setterMethod);
 			}
 			
 			int modifiers = field.getModifiers();
@@ -185,17 +189,58 @@ public class Composer {
 		}
 		
 		/**
-		 * @return the public, non-static and void returning setter {@link Method}
+		 * <p>Looks for the public, non-static and void returning 
+		 * setter {@link Method}
 		 * from the specified {@link Class} with the specified <code>name</code>
 		 * that takes the specified <code>type</code> as its only
-		 * {@link Parameter}, or <code>null</code> if there is none matching
-		 * the description
+		 * {@link Parameter}
+		 * <p>The <code>type</code>s {@link Multiplicity}
+		 * is specified with the <code>multiplicity</code> parameter
+		 * and if it is anything other than {@link Multiplicity#SINGLE}
+		 * then the <code>genericType</code> should be specified
+		 * <p><b>Keep in mind that</b> the {@link Retriever#type}
+		 * is not the type that the setter method is taking as its
+		 * parameter in the case of {@link Multiplicity#LIST} for example.
+		 * Instead it takes {@link List} as its parameter and {@link Retriever#type}
+		 * is the <code>genericType</code>
+		 * @return the {@link Method} that satisfies the conditions
+		 * or <code>null</code> if there was none matching
+		 * <p>Fuck that shit, gimme the damn retriever, name and clazz
 		 */
-		// TODO add check for generic type in case of lists and arrays
-		private static Method getSetterMethod (Class <?> clazz, Class <?> type, String name) {
+		private static Method getSetterMethod (Class <?> clazz, Retriever retriever, String name) {
 			try {
-				Method method = clazz.getDeclaredMethod(name, type);
-
+				Method method;
+				
+				switch(retriever.multiplicity) {
+				case SINGLE:
+				{
+					method = clazz.getDeclaredMethod(name, retriever.type);
+					break;
+				}
+				case ARRAY:
+				{
+					Class <?> type = retriever.type.arrayType();
+					method = clazz.getDeclaredMethod(name, type);
+					break;
+				}
+				case LIST:
+				{
+					method = clazz.getDeclaredMethod(name, List.class);
+					Type genericType = method.getParameters()[0].getParameterizedType();
+					if (genericType instanceof ParameterizedType parameterizedType) {
+						Class <?> type = (Class <?>) parameterizedType.getActualTypeArguments()[0];
+						if (!type.equals(retriever.type)) {
+							return null;
+						}
+					} else {
+						throw new UnsupportedType(genericType);
+					}
+					break;
+				}
+				default:
+					throw new UnsupportedType(retriever.multiplicity);
+				}
+				
 				int modifiers = method.getModifiers();
 				if (!Modifier.isPublic(modifiers) ||
 					Modifier.isStatic(modifiers) ||
@@ -211,7 +256,6 @@ public class Composer {
 				throw new UnhandledJeextException(e);
 			}
 		}
-		
 	}
 	
 }

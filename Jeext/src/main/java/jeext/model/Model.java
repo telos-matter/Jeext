@@ -7,6 +7,7 @@ import jeext.dao.Manager;
 import jeext.util.MCollections;
 import models.User;
 // TODO update to mention the MID n anything else
+// CONSIDER do i need <T extends Model <T>> ?? Like why? I can always access the class using this.getClass?
 // and zero arg const
 /**
  * <p>The base abstract class that all models in the application <i>should</i>
@@ -57,6 +58,7 @@ public abstract class Model <T extends Model <T>> {
 	 * @return the unique identifier of this entity
 	 * @see #equalsId(Model)
 	 */
+	// TODO yeah you can use primitivs, but not if u use it as param
 	public abstract Object getId ();
 	
 	/**

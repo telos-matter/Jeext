@@ -37,13 +37,13 @@ import models.permission.Permission;
 @WebController
 public class Index {
 	
-	@WebMapping(value = "/", method = HTTPMethod.POST)
+	@WebMapping(value = "/", method = HTTPMethod.GET)
 	public static void hello (
-			@Name("file") @Max (1024 * 1024 * 5) FileType file,
-			@Required(false) String name,
+//			@Name("file") @Max (1024 * 1024 * 5) FileType file,
+//			@Required(false) String name,
 				HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		System.out.println("In hello "+name);
-		Controller.writeSimpleText(response, "file size= " +file.getLength());
+		System.out.println("In hello ");
+//		Controller.writeSimpleText(response, "file size= " +file.getLength());
 		
 	}
 	

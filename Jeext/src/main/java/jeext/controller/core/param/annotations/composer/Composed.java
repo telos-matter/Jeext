@@ -9,14 +9,12 @@ import java.lang.annotation.Target;
 @Retention(RUNTIME)
 @Target(PARAMETER)
 public @interface Composed {
-	// CONSIDER if the name annotation is used, should it override the id field name regardless of retrievefirst?
-	boolean ignoreID () default false; // does not override ignore if exists on the field
+	// MENTION the param name is that by which the id will be looked for, regardless of its composeWith
+	
+	boolean ignoreID () default false; // false wont override ignore if exists on the field
 	
 	boolean requireAll () default true; // all fields are required, if they are not here then invalid 
 	
 	boolean retrieveFirst () default false; // db
-	// what about null in id, when should it be called with default n what not
-	// auto ignore on serializable
-	// all fields should be here or not
 	
 }

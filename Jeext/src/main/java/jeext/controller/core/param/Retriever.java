@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import org.apache.tomcat.util.http.fileupload.servlet.ServletFileUpload;
@@ -36,6 +35,7 @@ import jeext.util.exceptions.UnsupportedType;
 
 // Basically param, but withouth validators or consumers
 // Only retrieves a parameter form request
+// MENTION no longer sub class of lists, lists or nothing
 public class Retriever {
 	
 	protected String name;
@@ -61,7 +61,7 @@ public class Retriever {
 			type = type.componentType();
 			multiplicity = Multiplicity.ARRAY;
 			
-		} else if (List.class.isAssignableFrom(type)) {
+		} else if (List.class.equals(type)) {
 			Type genericType = parameter.getParameterizedType();
 			if (genericType instanceof ParameterizedType parameterizedType) {
 				type = (Class <?>) parameterizedType.getActualTypeArguments()[0];
@@ -377,10 +377,7 @@ public class Retriever {
 	
 	private static FileType getFile (String name, HttpServletRequest request) {
 		if (!isMultipart(request)) {
-			System.out.println("it is NOT multipart");
 			return null;
-		} else {
-			System.out.println("it is multipart");
 		}
 		
 		try {
