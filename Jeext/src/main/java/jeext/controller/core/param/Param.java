@@ -7,10 +7,6 @@ import jeext.controller.core.mapping.Mapping;
 import jeext.controller.core.mapping.exceptions.InvalidMappingMethodParam;
 import jeext.controller.core.mapping.exceptions.InvalidMappingMethodParamConsumer;
 import jeext.controller.core.mapping.exceptions.InvalidMappingMethodParamValidator;
-import jeext.controller.core.param.Retriever.IDKind;
-import jeext.controller.core.param.Retriever.Kind;
-import jeext.controller.core.param.Retriever.Multiplicity;
-import jeext.controller.core.param.annotations.MID;
 import jeext.controller.core.param.annotations.Name;
 import jeext.controller.core.param.annotations.composer.Composed;
 import jeext.controller.core.param.consumers.*;
@@ -18,7 +14,6 @@ import jeext.controller.core.param.consumers.annotations.*;
 import jeext.controller.core.param.types.FileType;
 import jeext.controller.core.param.validators.*;
 import jeext.controller.core.param.validators.annotations.*;
-import jeext.dao.Manager;
 import jeext.model.Model;
 import jeext.util.Dates.PeriodHolder;
 import jeext.util.exceptions.UnhandledJeextException;
@@ -27,18 +22,15 @@ import jeext.util.Parser;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.lang.reflect.ParameterizedType;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -418,7 +410,6 @@ public class Param {
 		
 		this.validators = _validators.toArray(new Validator [_validators.size()]);
 	}
-	// TODO do please go over the validators and consumers and check those that still use set if they are actually using hashable object
 	
 	private void processConsumers (Class <?> webController, Method method, Parameter parameter) {
 		if (nature == Nature.COMPOSED) {
@@ -473,12 +464,32 @@ public class Param {
 				
 				Default _default = parameter.getAnnotation(Default.class);
 				if (_default != null) {
-					Long value = Retriever.parse(_default.value(), Long.class);
-					if (value == null) {
-						throw new InvalidMappingMethodParamConsumer(webController, method, parameter, _default, "Must be same type as the models id"); // TODO FIXME
+					
+					Object value;
+					switch (retriever.idKind) {
+					case PRIMITIVE:
+						value = Retriever.parse(_default.value(), retriever.idType);
+						break;
+					case ENUM:
+						value = Retriever.parseEnum(_default.value(), retriever.idType);
+						break;
+					default:
+						throw new UnsupportedType(retriever.idKind);
 					}
 					
-					_consumers.add(DefaultModelConsumer.GET(retriever.type, value));
+					if (value == null) {
+						throw new InvalidMappingMethodParamConsumer(webController, method, parameter, _default, "Must be a value that can be parsed to the models id type. The value is `" +_default.value() +"` yet the id type is `" +retriever.idType +"`");
+					}
+					
+					Model <?> instance;
+					try {
+						instance = (Model <?>) retriever.constructor.newInstance();
+					} catch (ClassCastException | InstantiationException | IllegalAccessException | IllegalArgumentException e) {
+						throw new UnhandledJeextException(e);
+					} catch (InvocationTargetException e) {
+						throw new InvalidMappingMethodParam(webController, method, parameter,  "The empty constructor threw this exception `" +e.getCause() +"` when called");
+					}
+					_consumers.add(DefaultModelConsumer.GET(instance, value));
 				}
 				
 			} else if (LocalDate.class.equals(retriever.type)) {

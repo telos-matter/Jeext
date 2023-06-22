@@ -28,7 +28,6 @@ import jeext.util.exceptions.UnsupportedType;
 
 public class Composer {
 
-	private Constructor <?> constructor;
 	private Retriever retriever; // CONSIDER you are not necessarily going to find the id
 	private FieldRetriever [] fieldRetrievers;
 	
@@ -43,16 +42,6 @@ public class Composer {
 			throw new FailedParamInit("Can only use `" +Composed.class +"` with model type of Params");
 		}
 		
-		for (Constructor <?> constructor : retriever.type.getDeclaredConstructors()) {
-			if (Modifier.isPublic(constructor.getModifiers()) && constructor.getParameterCount() == 0) {
-				this.constructor = constructor;
-				break;
-			}
-		}
-		
-		if (constructor == null) {
-			throw new FailedParamInit("Found no public, zero args constructor for the model `" +retriever.type +"`");
-		}
 		
 		Composed composed = parameter.getAnnotation(Composed.class);
 		requireAll = composed.requireAll();
@@ -102,7 +91,7 @@ public class Composer {
 			}
 		} else {
 			try {
-				model = constructor.newInstance(null);
+				model = retriever.constructor.newInstance(null);
 			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException e) {
 				throw new UnhandledJeextException(e);
 			}

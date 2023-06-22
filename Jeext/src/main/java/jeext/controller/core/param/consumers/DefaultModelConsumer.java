@@ -1,8 +1,8 @@
 package jeext.controller.core.param.consumers;
 
 import jeext.controller.core.param.consumers.annotations.Default;
-import jeext.dao.Manager;
 import jeext.model.Model;
+import jeext.util.exceptions.PassedNull;
 
 /**
  * <p>The implementation of the {@link Default} {@link Consumer}
@@ -11,22 +11,22 @@ import jeext.model.Model;
 public class DefaultModelConsumer implements Consumer {
 
 	
-	public static DefaultModelConsumer GET (Class <?> type, Object id) {
-		return new DefaultModelConsumer (type, id);
+	public static DefaultModelConsumer GET (Model <?> instance, Object id) {
+		PassedNull.check(instance, Model.class);
+		return new DefaultModelConsumer (instance, id);
 	}
 	
-	private Class <?> type;
+	private Model <?> instance;
 	private Object id;
 	
-	private DefaultModelConsumer (Class <?> type, Object id) {
-		// FIXME use model.clazz.find instead, that way it doesn't depend on the manager and the user is free to change the manager
-		this.type = type;
+	private DefaultModelConsumer (Model <?> instance, Object id) {
+		this.instance = instance;
 		this.id = id;
 	}
 
 	@Override
 	public Object consume (Object object) {
-		return (object == null)? Manager.find(type, id) : object;
+		return (object == null)? instance.clazz.find(id) : object;
 	}
 	
 }

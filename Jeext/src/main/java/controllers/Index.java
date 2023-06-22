@@ -39,6 +39,7 @@ public class Index {
 	
 	@WebMapping(value = "/", method = HTTPMethod.GET)
 	public static void hello (
+			@Default("3") TestM m,
 //			@Name("file") @Max (1024 * 1024 * 5) FileType file,
 //			@Required(false) String name,
 				HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

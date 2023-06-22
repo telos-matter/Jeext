@@ -2,6 +2,7 @@ package jeext.controller.core.param;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
@@ -50,6 +51,7 @@ public class Retriever {
 	
 	protected Class <?> idType;
 	protected IDKind idKind;
+	protected Constructor <?> constructor;
 	
 	protected Retriever (Parameter parameter) throws FailedParamInit {
 		name = (parameter.isAnnotationPresent(Name.class))? parameter.getAnnotation(Name.class).value() : parameter.getName();
@@ -152,10 +154,29 @@ public class Retriever {
 		}
 	}
 
+	/**
+	 * Also sets the constructor
+	 * @param owner
+	 * @return
+	 * @throws FailedParamInit
+	 */
 	private Class <?> validateModelAndGetIdType (Object owner) throws FailedParamInit {
 		if (kind != Kind.MODEL) {
 			throw new FailedAssertion("Kind is not model for `" +owner  +"` , instead: " +kind);
 		}
+		
+		this.constructor = null;
+		for (Constructor <?> constructor : type.getDeclaredConstructors()) {
+			if (Modifier.isPublic(constructor.getModifiers()) && constructor.getParameterCount() == 0) {
+				this.constructor = constructor;
+				break;
+			}
+		}
+		
+		if (this.constructor == null) {
+			throw new FailedParamInit("(" +owner  +") Found no public, zero args constructor for the model `" +type +"`");
+		}
+		
 		
 		List <Field> id = Arrays
 				.stream(type.getDeclaredFields())
@@ -163,7 +184,7 @@ public class Retriever {
 				.toList();
 		
 		if (id.size() != 1) {
-			throw new FailedParamInit("(" +owner  +") The Model has to indentify one single ID field with the `" +MID.class +"` annotation");
+			throw new FailedParamInit("(" +owner  +") The Model (" +type +") has to indentify one single ID field with the `" +MID.class +"` annotation");
 		}
 		
 		return id.get(0).getType();
