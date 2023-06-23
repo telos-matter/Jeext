@@ -17,7 +17,7 @@ import jeext.model.Model;
 /**
  * <p>Specifies the name by which to retrieve the {@link Param}
  * from the request
- * <p>By default (if this {@link Annotation} is not used)
+ * <p><b>By default</b> (if this {@link Annotation} is not used)
  * the name by which the {@link Param} is retrieved
  * is that of {@link Parameter}
  * in the {@link Mapping} {@link Method}

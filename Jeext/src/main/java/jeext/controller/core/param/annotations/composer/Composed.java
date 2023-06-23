@@ -6,6 +6,16 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import jeext.controller.core.param.consumers.Consumer;
+import jeext.controller.core.param.validators.annotations.Required;
+
+/**
+ * <p><b>Know that</b> this {@link Consumer} is mutually exclusive with
+ * {@link Required} and {@link Composed}
+ * 
+ * @author telos_matter
+ *
+ */
 @Retention(RUNTIME)
 @Target(PARAMETER)
 public @interface Composed {

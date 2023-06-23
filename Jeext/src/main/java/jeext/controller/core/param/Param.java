@@ -7,6 +7,7 @@ import jeext.controller.core.mapping.Mapping;
 import jeext.controller.core.mapping.exceptions.InvalidMappingMethodParam;
 import jeext.controller.core.mapping.exceptions.InvalidMappingMethodParamConsumer;
 import jeext.controller.core.mapping.exceptions.InvalidMappingMethodParamValidator;
+import jeext.controller.core.param.annotations.MID;
 import jeext.controller.core.param.annotations.Name;
 import jeext.controller.core.param.annotations.composer.Composed;
 import jeext.controller.core.param.consumers.*;
@@ -22,6 +23,8 @@ import jeext.util.Parser;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -32,57 +35,184 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 /**
- * <p>A {@link Param} is any {@link Parameter} in a
+ * <p>A {@link Param} is <b>any</b> {@link Parameter} in a
  * {@link Mapping} {@link Method} (except of course
  * {@link HttpServletRequest} and {@link HttpServletResponse})
  * that is expected as a parameter in the incoming HTTP request
  * <p>It provides an easy way to retrieve, check and operate on
  * the parameters that a user sends
- * <p>The allowed types are: 
+ * <p>The tedious procedure of calling
+ * <code>request.getParameter(..)</code>, checking if its not
+ * <code>null</code>, casting to
+ * the appropriate type and then checking if the casting went well.
+ * All of that gets automated! And a lot more.
+ * <p>The allowed types of {@link Parameter}s are: 
  * <ul>
  * <li>{@link Model}
  * <li>{@link Number} ({@link Integer}, {@link Float}, {@link Double}, {@link Long}, {@link Short}, {@link Byte})
- * <li>{@link String}
  * <li>{@link Enum}
+ * <li>{@link FileType}
  * <li>{@link LocalDate}
  * <li>{@link LocalTime}
  * <li>{@link LocalDateTime}
  * <li>{@link Boolean}
  * <li>{@link Character}
+ * <li>{@link String}
  * </ul>
- * And {@link Array}s and {@link List}s of the above mentioned types.
+ * As well as {@link Array} and {@link List} of the above mentioned types.
  * Primitives aren't allowed, use their object representation instead
- * <p>These {@link Param}s can be annotated with 3 types of {@link Annotation}
- * and 1 additional one for {@link Model}s only, these {@link Annotation}s are:
+ * <hr>
+ * <p>These {@link Param}s can be annotated with 3 types of {@link Annotation}s
+ * and 1 additional one for {@link Model} type of {@link Param}s only,
+ * these {@link Annotation}s are:
  * <ul>
  * <li>{@link Name}
  * <li>{@link Validator} type {@link Annotation}
+ * <li>{@link Consumer} type {@link Annotation}
+ * <li>{@link Composed} (for {@link Model}s only)
  * </ul>
+ * These {@link Annotation}s perform checks and operations on the 
+ * {@link Param}s.
+ * <p>You can read
+ * about each one of them in their respective documentation (and you should, before
+ * using some of them as that they have special behavior),
+ * but in <i>short</i>:
+ * <ul>
+ * <li>{@link Name} allows you to specify the name of the incoming parameter,
+ * but by default it is the same name as that of the {@link Parameter}
+ * <li>{@link Validator}s make sure that the incoming parameter
+ * conforms to a certain condition
+ * <li>{@link Consumer}s give new values to the parameter or/and perform
+ * certain actions on them
+ * <li>{@link Composed} automatically fills the {@link Field}s of a {@link Model}
+ * from the incoming parameters
+ * </ul>
+ * <p>An example of a {@link Validator} type {@link Annotation} would be
+ * the {@link Required} {@link Annotation}, which asserts that this {@link Param}
+ * should exists with the incoming parameters and must be cast-able to its type.
+ * <p>As for {@link Consumer} type {@link Annotation}, an example would be
+ * the {@link Default} {@link Annotation} which gives a defined
+ * value to the {@link Param} if there was no corresponding parameter
+ * in the incoming request
+ * <p><b>Know that:</b> the {@link Required}, {@link Default} and {@link Composed}
+ * {@link Annotation}s are mutually exclusive
+ * <p><b>Know that:</b> the {@link Required} {@link Validator} feature
+ * is set on by default on all {@link Param}s, except of course
+ * if they are annotated with the {@link Default} or {@link Composed} {@link Annotation}
+ * <p>Not all {@link Validator}s go on all type of {@link Param}s, and
+ * same for {@link Consumer}s. For example you can't have the {@link UpperCase}
+ * {@link Consumer} on an {@link Integer} type of {@link Param}..
+ * <hr>
+ * <p>Any {@link Model} that you want to have as a {@link Param} need to satisfy
+ * these conditions:
+ * <ul>
+ * <li>The ID field should be annotated with the {@link MID} {@link Annotation}
+ * <li>The ID field can only be one of these types:
+ * 		<ul>
+ * 		<li>{@link Number} ({@link Integer}, {@link Float}, {@link Double}, {@link Long}, {@link Short}, {@link Byte})
+ *		<li>{@link Enum}
+ * 		<li>{@link String}
+ * 		<li>{@link LocalDate}
+ * 		<li>{@link LocalTime}
+ * 		<li>{@link LocalDateTime}
+ * 		<li>{@link Boolean}
+ * 		<li>{@link Character}
+ * 		</ul>
+ * <i>Unfortunately</i> {@link UUID} is not supported. And so are primitives, use their
+ * object representation instead
+ * <li>Have a public zero-args {@link Constructor}. Preferably one that won't
+ * throw any {@link Exception}s, because if it does {@link jeext} won't handle
+ * them, duh. (Know that by default, if no constructor was explicitly declared, a
+ * public zero-args one is automatically added)
+ * </ul>
+ * <hr>
+ * @implNote
+ * <p>The following part only discusses how the {@link Param} class is
+ * conceptualized, and
+ * there is no need to read it unless you intend to modify some of the code
+ * <p>There is a distinction between {@link Param}s that are {@link Model}s
+ * and annotated with the {@link Composed} {@link Annotation}, they
+ * are the {@link Nature#COMPOSED} {@link Param}s. And the rest of
+ * the {@link Param}s, which are the {@link Nature#RETRIEVED} {@link Param}s
+ * <p>Any {@link Param} is retrieved using the {@link #retriever}, except if
+ * its {@link Nature#COMPOSED} then its retrieved with the {@link #composer}. Which
+ * in turn uses a bunch of {@link Retriever}s (You can read more about it
+ * in its own documentation)
+ * <p>Most of the work and heavy lifting is done by the {@link Retriever}
+ * <p>There are currently no {@link Validator}s or {@link Consumer}s that go
+ * with the {@link Nature#COMPOSED} {@link Param}s so the check and operations
+ * are only done to {@link Nature#RETRIEVED} {@link Param}s
  */
 public class Param {
 	
-	// MENTION they are not commutative
-	// MENTION by default required is on, but then if u use default its off automatically
-	// MENTION only models integer based id are allowed, no error now, but error when we try to retrieve, no UUID chief
-	// MENTION models should inherit from model to be considered a model, duh
-	// MENTION default consumer for string "cannot" be empty string, cuz it consideres emptry string and null same
-	// MENTION enums should we written as they are declared
-	// MENTION idtype cant be primitive
-	
+	/**
+	 * An immutable {@link Set} of all the existing {@link Validator}s
+	 */
 	public static final Set <Class <? extends Annotation>> ALL_VALIDATORS = Set.of(After.class, Alphabetic.class, Alphanumeric.class, Before.class, Email.class, Max.class, Min.class, NonBlank.class, Older.class, Regex.class, Required.class, Younger.class);
+	/**
+	 * An immutable {@link Set} of all the existing {@link Consumer}s
+	 */
 	public static final Set <Class <? extends Annotation>> ALL_CONSUMERS = Set.of(Capitalize.class, Default.class, LowerCase.class, UpperCase.class);
 
+	/**
+	 * The nature of this {@link Param},
+	 * either {@link Nature#RETRIEVED}
+	 * or {@link Nature#COMPOSED}
+	 */
 	private Nature nature;
+	/**
+	 * If this {@link Param} is
+	 * {@link Nature#RETRIEVED} then
+	 * there is an instance of a {@link Retriever}
+	 * for this {@link Param} in {@link #retriever}
+	 * and <code>null</code> in {@link #composer}
+	 */
 	private Retriever retriever;
+	/**
+	 * If this {@link Param} is
+	 * {@link Nature#COMPOSED} then
+	 * there is an instance of a {@link Composer}
+	 * for this {@link Param} in {@link #composer}
+	 * and <code>null</code> in {@link #retriever}
+	 */
 	private Composer composer;
 	
+	/**
+	 * <p>An {@link Array} of all the
+	 * {@link Validator}s that this {@link Param}
+	 * has.
+	 * <p>Currently there is no {@link Validator}
+	 * that can go on {@link Nature#COMPOSED}
+	 * {@link Param}s
+	 */
 	private Validator [] validators;
+	/**
+	 * <p>An {@link Array} of all the
+	 * {@link Consumer}s that this {@link Param}
+	 * has.
+	 * <p>Currently there is no {@link Consumer}
+	 * that can go on {@link Nature#COMPOSED}
+	 * {@link Param}s
+	 */
 	private Consumer [] consumers;
 	
+	/**
+	 * <p>The {@link Constructor} that initializes the {@link Param}
+	 * according to its {@link Nature}, and checks whether everything
+	 * is as it should be, and there is no wrong {@link Annotation}s
+	 * and so on
+	 * <p>Its called by 
+	 * {@link Mapping#Mapping(Class, Method, jeext.controller.core.Access, models.permission.Permission[], Boolean)}
+	 * 
+	 * @param webController
+	 * @param method
+	 * @param parameter
+	 */
 	public Param (Class <?> webController, Method method, Parameter parameter) {
 		try {
 			if (parameter.isAnnotationPresent(Composed.class)) {
@@ -100,6 +230,16 @@ public class Param {
 		processAnnotations(webController, method, parameter);
 	}
 	
+	/**
+	 * Processes the {@link Annotation}s present
+	 * on this {@link Param}, makes sure there is no conflicting {@link Annotation}s
+	 * and adds the {@link Validator}s and {@link Consumer}s that are going
+	 * to be used by this {@link Param}
+	 * 
+	 * @param webController
+	 * @param method
+	 * @param parameter
+	 */
 	private void processAnnotations (Class <?> webController, Method method, Parameter parameter) {
 		int count = 0;
 		
@@ -116,6 +256,15 @@ public class Param {
 		processConsumers(webController, method, parameter);
 	}
 
+	/**
+	 * Processes all the {@link Validator} {@link Annotation}s
+	 * that exists on this {@link Param} and makes sure
+	 * there are correctly used
+	 * 
+	 * @param webController
+	 * @param method
+	 * @param parameter
+	 */
 	private void processValidators (Class <?> webController, Method method, Parameter parameter) {
 		if (nature == Nature.COMPOSED) {
 			checkAnnotations(webController, method, parameter, ALL_VALIDATORS);
@@ -411,6 +560,15 @@ public class Param {
 		this.validators = _validators.toArray(new Validator [_validators.size()]);
 	}
 	
+	/**
+	 * Processes all the {@link Consumer} {@link Annotation}s
+	 * that exists on this {@link Param} and makes sure
+	 * there are correctly used
+	 * 
+	 * @param webController
+	 * @param method
+	 * @param parameter
+	 */
 	private void processConsumers (Class <?> webController, Method method, Parameter parameter) {
 		if (nature == Nature.COMPOSED) {
 			checkAnnotations(webController, method, parameter, ALL_CONSUMERS);
@@ -626,6 +784,19 @@ public class Param {
 		this.consumers = _consumers.toArray(new Consumer [_consumers.size()]);
 	}
 	
+	/**
+	 * <p>Used by
+	 * {@link #processValidators(Class, Method, Parameter)}
+	 * and
+	 * {@link #processConsumers(Class, Method, Parameter)}
+	 * to check if there are no conflicting {@link Annotation}s
+	 * 
+	 * @param webController
+	 * @param method
+	 * @param parameter
+	 * @param all
+	 * @param possible
+	 */
 	@SafeVarargs
 	private static void checkAnnotations (Class <?> webController, Method method, Parameter parameter, Set <Class <? extends Annotation>> all, Class <? extends Annotation> ... possible) {
 		for (Annotation annotation : parameter.getDeclaredAnnotations()) {
@@ -637,6 +808,16 @@ public class Param {
 		}
 	}
 	
+	/**
+	 * The method that gets called by
+	 * {@link Mapping#invoke(HttpServletRequest, HttpServletResponse)}
+	 * to retrieve all the {@link Param}s
+	 * 
+	 * @param request
+	 * @throws InvalidParameter	If one of the {@link Validator}s fails
+	 * @throws InvocationTargetException If one of the setter methods
+	 * used by the {@link Composer} throws an {@link Exception}
+	 */
 	public Object getParam (HttpServletRequest request) throws InvalidParameter, InvocationTargetException {
 		try {
 			Object value;
@@ -667,6 +848,14 @@ public class Param {
 		}
 	}
 	
+	/**
+	 * Goes over all the {@link Validator}s
+	 * this {@link Param} has, and {@link Validator#validate(Object)}s the
+	 * value of the parameter
+	 * 
+	 * @param value
+	 * @throws InvalidParameter	If one of them fails
+	 */
 	private void validate (Object value) throws InvalidParameter {
 		for (int i = 0; i < validators.length; i++) {
 			if (!validators[i].validate(value)) {
@@ -675,6 +864,13 @@ public class Param {
 		}
 	}
 	
+	/**
+	 * Goes over all the {@link Consumer}s
+	 * this {@link Param} has, and {@link Consumer#consume(Object)}s
+	 * the value of the parameter
+	 * 
+	 * @param value
+	 */
 	private Object consume (Object value) {
 		for (int i = 0; i < consumers.length; i++) {
 			value = consumers[i].consume(value);
@@ -683,11 +879,22 @@ public class Param {
 		return value;
 	}
 	
+	/**
+	 * {@link Enum} to specify
+	 * which type of {@link Param}
+	 * this {@link Param} is
+	 */
 	private static enum Nature {
 		RETRIEVED,
 		COMPOSED;
 	}
 	
+	/**
+	 * Used by {@link Retriever} and {@link Composer}
+	 * to indicate that requirement failed, and then
+	 * its up to the {@link Param} to signal it to
+	 * the user
+	 */
 	protected static class FailedParamInit extends Exception {
 		private static final long serialVersionUID = 1L;
 		

@@ -33,6 +33,7 @@ import jeext.controller.core.param.validators.Validator;
  * @see Validator
  * @see Composer
  */
+//MENTION they are not commutative
 @FunctionalInterface
 public interface Consumer {
 
