@@ -639,15 +639,7 @@ public class Param {
 						throw new InvalidMappingMethodParamConsumer(webController, method, parameter, _default, "Must be a value that can be parsed to the models id type. The value is `" +_default.value() +"` yet the id type is `" +retriever.idType +"`");
 					}
 					
-					Model <?> instance;
-					try {
-						instance = (Model <?>) retriever.constructor.newInstance();
-					} catch (ClassCastException | InstantiationException | IllegalAccessException | IllegalArgumentException e) {
-						throw new UnhandledJeextException(e);
-					} catch (InvocationTargetException e) {
-						throw new InvalidMappingMethodParam(webController, method, parameter,  "The empty constructor threw this exception `" +e.getCause() +"` when called");
-					}
-					_consumers.add(DefaultModelConsumer.GET(instance, value));
+					_consumers.add(DefaultModelConsumer.GET(retriever.instance, value));
 				}
 				
 			} else if (LocalDate.class.equals(retriever.type)) {

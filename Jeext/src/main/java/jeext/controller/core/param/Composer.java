@@ -1,6 +1,7 @@
 package jeext.controller.core.param;
 
-import java.lang.reflect.Constructor;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -20,21 +21,47 @@ import jeext.controller.core.param.annotations.MID;
 import jeext.controller.core.param.annotations.composer.ComposeWith;
 import jeext.controller.core.param.annotations.composer.Composed;
 import jeext.controller.core.param.annotations.composer.Ignore;
+import jeext.model.Model;
 import jeext.util.Strings;
-import jeext.util.exceptions.FailedAssertion;
 import jeext.util.exceptions.PassedNull;
 import jeext.util.exceptions.UnhandledJeextException;
 import jeext.util.exceptions.UnsupportedType;
 
+/**
+ * <p>The class that implements the {@link Composed}
+ * {@link Annotation}
+ * <p>Most of the methods here and in
+ * {@link Retriever} are protected so that
+ * only {@link Param}
+ * can use them
+ */
 public class Composer {
 
-	private Retriever retriever; // CONSIDER you are not necessarily going to find the id
+	/**
+	 * The {@link Retriever} for the {@link Model}
+	 * annotated with {@link Composed}
+	 */
+	private Retriever retriever;
+	/**
+	 * An {@link Array} of {@link FieldRetriever}
+	 * of the {@link Field}s that
+	 * the {@link Model} is composed with
+	 */
 	private FieldRetriever [] fieldRetrievers;
 	
+	/**
+	 * Whether all the {@link Field}s are required or not
+	 */
 	private boolean requireAll;
-	private boolean retrieveFirst; //MENTION will expect the id, and fail if not found
-	// MENTION need public 0 arg constr
+	/**
+	 * Whether to retrieve the {@link Model} first before composing
+	 * or to create a new instance
+	 */
+	private boolean retrieveFirst;
 	
+	/**
+	 * TODO
+	 */
 	protected Composer (Parameter parameter) throws FailedParamInit {
 		retriever = new Retriever(parameter);
 		
@@ -84,7 +111,7 @@ public class Composer {
 	
 	protected Object compose (HttpServletRequest request) throws InvocationTargetException, InvalidParameter {
 		Object model = null;
-		
+
 		if (retrieveFirst) {
 			if ((model = retriever.retrieve(request)) == null) {
 				throw new InvalidParameter("RetrieveFirst is set, and couldn't retrieve\n" +retriever);
@@ -120,7 +147,7 @@ public class Composer {
 		
 		private Method setter;
 		
-		// MENTION setter should ofc be public static and kda, if exception is thrown, up to you
+		
 		// does not check if not ignored
 		public FieldRetriever (Class <?> clazz, Field field) throws FailedParamInit {
 			this.field = field;

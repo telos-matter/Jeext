@@ -2,13 +2,18 @@ package jeext.controller.core.param.types;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Blob;
+import java.sql.SQLException;
+
+import javax.sql.rowset.serial.SerialBlob;
 
 import jakarta.servlet.http.Part;
+import jeext.controller.util.exceptions.UnhandledException;
 
 public class FileType {
 	
-	private byte [] content;
-	private String submittedName;
+	private final byte [] content;
+	private final String submittedName;
 	
 	/**
 	 * 
@@ -23,6 +28,22 @@ public class FileType {
 	
 	public long getLength () {
 		return content.length;
+	}
+	
+	public byte [] getContent () {
+		return this.content;
+	}
+
+	public String getSubmittedName() {
+		return submittedName;
+	}
+	
+	public Blob asBlob () {
+		try {
+			return new SerialBlob(content);
+		} catch (SQLException e) {
+			throw new UnhandledException(e);
+		}
 	}
 	
 }

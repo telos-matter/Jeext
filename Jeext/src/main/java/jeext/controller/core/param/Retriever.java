@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
@@ -26,7 +27,6 @@ import jeext.controller.core.param.annotations.Name;
 import jeext.controller.core.param.annotations.composer.ComposeWith;
 import jeext.controller.core.param.types.FileType;
 import jeext.controller.util.exceptions.UnhandledException;
-import jeext.dao.Manager;
 import jeext.model.Model;
 import jeext.util.Parser;
 import jeext.util.exceptions.FailedAssertion;
@@ -34,25 +34,85 @@ import jeext.util.exceptions.PassedNull;
 import jeext.util.exceptions.UnhandledJeextException;
 import jeext.util.exceptions.UnsupportedType;
 
-// Basically param, but withouth validators or consumers
-// Only retrieves a parameter form request
-// MENTION no longer sub class of lists, lists or nothing
+/**
+ * <p>The class that does the heavy lifting
+ * for {@link Param} and {@link Composer}
+ * <p>Its only job is to retrieve a parameter
+ * from an HTTP request and <i>cast</i> it
+ * to its appropriate type
+ * <p>Most of the methods here and in
+ * {@link Composer} are protected so that
+ * only {@link Param} and {@link Composer}
+ * can use them
+ */
 public class Retriever {
 	
+	/**
+	 * The name by which to
+	 * look for the parameter
+	 */
 	protected String name;
 
-	protected Class <?> type;
-	protected Multiplicity multiplicity; 
 	/**
-	 * Primitive here means anything other than a Model.
-	 * Primitives themselves (int, float..) are not allowed
+	 * <p>The actual type of the parameter.
+	 * <p>If its <code>List &lt;Integer&gt;</code>
+	 * for example then this {@link Field} would
+	 * have the {@link Integer} {@link Class}
+	 * in it and not {@link List}
+	 */
+	protected Class <?> type;
+	/**
+	 * The multiplicity that this parameter
+	 * is expected to be in
+	 * 
+	 * @see Multiplicity
+	 */
+	protected Multiplicity multiplicity; 
+	
+	/**
+	 * The kind of this parameter,
+	 * to be able to know how to retrieve it
+	 * 
+	 * @see Kind
 	 */
 	protected Kind kind;
 	
+	/**
+	 * For {@link Kind#MODEL} type of parameters
+	 * only, it specifies the {@link Model}s
+	 * ID type
+	 */
 	protected Class <?> idType;
+	/**
+	 * For {@link Kind#MODEL} type of parameters
+	 * only, it specifies the {@link Model}s
+	 * ID kind to be able to know how
+	 * to retrieve it
+	 * 
+	 * @see IDKind
+	 */
 	protected IDKind idKind;
+	/**
+	 * For {@link Kind#MODEL} type of parameters
+	 * only, it holds the public zero-args
+	 * {@link Constructor}
+	 */
 	protected Constructor <?> constructor;
+	/**
+	 * For {@link Kind#MODEL} type of parameters
+	 * only, it holds an instance
+	 * of this {@link Model} to be
+	 * able to use {@link Model#clazz}
+	 */
+	protected Model <?> instance;
 	
+	/**
+	 * The {@link Constructor} called by {@link Param}
+	 * to initialize its {@link Retriever}
+	 * 
+	 * @param parameter
+	 * @throws FailedParamInit
+	 */
 	protected Retriever (Parameter parameter) throws FailedParamInit {
 		name = (parameter.isAnnotationPresent(Name.class))? parameter.getAnnotation(Name.class).value() : parameter.getName();
 		
@@ -81,6 +141,13 @@ public class Retriever {
 		processType(parameter);
 	}
 
+	/**
+	 * The {@link Constructor} called by {@link Composer}
+	 * to initialize its {@link Retriever}<b>s</b>
+	 * 
+	 * @param field
+	 * @throws FailedParamInit
+	 */
 	protected Retriever (Field field) throws FailedParamInit {
 		if (field.isAnnotationPresent(ComposeWith.class)) {
 			ComposeWith composeWith = field.getAnnotation(ComposeWith.class);
@@ -96,7 +163,7 @@ public class Retriever {
 			type = type.componentType();
 			multiplicity = Multiplicity.ARRAY;
 			
-		} else if (List.class.isAssignableFrom(type)) {
+		} else if (List.class.equals(type)) {
 			Type genericType = field.getGenericType();
 			if (genericType instanceof ParameterizedType parameterizedType) {
 				type = (Class <?>) parameterizedType.getActualTypeArguments()[0];
@@ -114,13 +181,20 @@ public class Retriever {
 		processType(field);
 	}
 	
+	/**
+	 * Processes the {@link #type}
+	 * and determines the other values
+	 * 
+	 * @param owner
+	 * @throws FailedParamInit
+	 */
 	private void processType (Object owner) throws FailedParamInit {
 		validateType(owner);
 		
 		determineKind();
 		
 		if (kind == Kind.MODEL) {
-			idType = validateModelAndGetIdType(owner);
+			validateAndSetModel(owner);
 			
 			validateIdType(owner);
 			
@@ -128,6 +202,14 @@ public class Retriever {
 		}
 	}
 
+	/**
+	 * Validates the {@link #type}
+	 * and makes sure its conforms to the
+	 * requirements
+	 * 
+	 * @param owner
+	 * @throws FailedParamInit
+	 */
 	private void validateType (Object owner) throws FailedParamInit {
 		if (type.isPrimitive()) {
 			throw new FailedParamInit("(" +owner  +") Primitives aren't allowed, use their Object representation instead.");
@@ -142,6 +224,10 @@ public class Retriever {
 		}
 	}
 	
+	/**
+	 * Determines the {@link #kind}
+	 * from the {@link #type}
+	 */
 	private void determineKind () {
 		if (Model.class.isAssignableFrom(type)) {
 			kind = Kind.MODEL;
@@ -155,17 +241,20 @@ public class Retriever {
 	}
 
 	/**
-	 * Also sets the constructor
+	 * Validates the {@link Model} type
+	 * , checks if it conforms with
+	 * the requirement and sets the required
+	 * information related to the model
+	 * 
 	 * @param owner
-	 * @return
 	 * @throws FailedParamInit
 	 */
-	private Class <?> validateModelAndGetIdType (Object owner) throws FailedParamInit {
+	private void validateAndSetModel (Object owner) throws FailedParamInit {
 		if (kind != Kind.MODEL) {
 			throw new FailedAssertion("Kind is not model for `" +owner  +"` , instead: " +kind);
 		}
 		
-		this.constructor = null;
+		constructor = null;
 		for (Constructor <?> constructor : type.getDeclaredConstructors()) {
 			if (Modifier.isPublic(constructor.getModifiers()) && constructor.getParameterCount() == 0) {
 				this.constructor = constructor;
@@ -173,8 +262,17 @@ public class Retriever {
 			}
 		}
 		
-		if (this.constructor == null) {
+		if (constructor == null) {
 			throw new FailedParamInit("(" +owner  +") Found no public, zero args constructor for the model `" +type +"`");
+		}
+		
+
+		try {
+			instance = (Model <?>) constructor.newInstance();
+		} catch (ClassCastException | InstantiationException | IllegalAccessException | IllegalArgumentException e) {
+			throw new UnhandledJeextException(e);
+		} catch (InvocationTargetException e) {
+			throw new FailedParamInit("(" +owner  +") The empty constructor threw this exception `" +e.getCause() +"` when it was called");
 		}
 		
 		
@@ -187,10 +285,16 @@ public class Retriever {
 			throw new FailedParamInit("(" +owner  +") The Model (" +type +") has to indentify one single ID field with the `" +MID.class +"` annotation");
 		}
 		
-		return id.get(0).getType();
+		this.idType = id.get(0).getType();
 	}
 
 	
+	/**
+	 * Validates the {@link #idType}
+	 * 
+	 * @param owner
+	 * @throws FailedParamInit
+	 */
 	private void validateIdType(Object owner) throws FailedParamInit {
 		if (idType.isPrimitive()) {
 			throw new FailedParamInit("(" +owner  +") Primitives can't be used as a models' id, use their Object representation instead");
@@ -201,6 +305,12 @@ public class Retriever {
 		}
 	}
 
+	/**
+	 * Determines the {@link #idKind}
+	 * from the {@link #idType}
+	 * 
+	 * @param owner
+	 */
 	private void determineIdKind(Object owner) {
 		if (kind != Kind.MODEL) {
 			throw new FailedAssertion("Kind is not model for `" +owner  +"` , instead: " +kind);
@@ -213,6 +323,11 @@ public class Retriever {
 		}
 	}
 	
+	/**
+	 * @param type
+	 * @return whether the passed <code>type</code>
+	 * is supported by the {@link Retriever}
+	 */
 	protected static boolean isTypeSupported (Class <?> type) {
 		PassedNull.check(type, Class.class);
 		
@@ -235,6 +350,11 @@ public class Retriever {
 		}
 	}
 	
+	/**
+	 * @param idType
+	 * @return whether the passed <code>idType</code>
+	 * is supported by the {@link Retriever}
+	 */
 	protected static boolean isIDTypeSupported (Class <?> idType) {
 		PassedNull.check(idType, Class.class);
 		
@@ -254,6 +374,15 @@ public class Retriever {
 		}
 	}
 	
+	/**
+	 * The method that actually retrieves the parameter
+	 * according to its {@link #kind} and {@link #multiplicity}
+	 * 
+	 * @param request
+	 * @return the retrieved parameter casted to its appropriate type
+	 * (if its a {@link List} then a {@link List} is returned)
+	 * or <code>null</code>, if it was not found or couldn't be casted
+	 */
 	protected Object retrieve (HttpServletRequest request) {
 		try {
 			
@@ -271,7 +400,7 @@ public class Retriever {
 					return getEnum(name, type, request);
 					
 				case MODEL:
-					return getEntity(name, type, idType, idKind, request);
+					return getEntity(request);
 					
 				default:
 					throw new UnsupportedType(kind);
@@ -290,7 +419,7 @@ public class Retriever {
 					return getEnums(name, type, request);
 					
 				case MODEL:
-					return getEntities(name, type, idType, idKind, request);
+					return getEntities(request);
 					
 				default:
 					throw new UnsupportedType(kind);
@@ -309,7 +438,7 @@ public class Retriever {
 					yield getEnums(name, type, request);
 					
 				case MODEL:
-					yield getEntities(name, type, idType, idKind, request);
+					yield getEntities(request);
 				
 				default:
 					throw new UnsupportedType(kind);
@@ -326,6 +455,15 @@ public class Retriever {
 		}
 	}
 
+	/**
+	 * @param <T>
+	 * @param array
+	 * @param type
+	 * 
+	 * @return a {@link List} from the passed supposed <code>array</code>
+	 * or <code>null</code> if the its the <code>array</code> is
+	 * <code>null</code>
+	 */
 	@SuppressWarnings("unchecked")
 	private static <T> List <T> constructList (Object array, Class <T> type) {
 		if (array == null) {
@@ -335,8 +473,13 @@ public class Retriever {
 		return Arrays.asList((T []) array);
 	}
 	
-	private static <T, S> T getEntity (String name, Class <T> type, Class <S> idType, IDKind idKind, HttpServletRequest request) {
-		S id;
+	/**
+	 * @param request
+	 * @return the {@link Model} that was retrieved from
+	 * the request
+	 */
+	private Model <?> getEntity (HttpServletRequest request) {
+		Object id;
 		switch (idKind) {
 		case PRIMITIVE:
 			id = getParameter(name, idType, request);
@@ -348,12 +491,16 @@ public class Retriever {
 			throw new UnsupportedType(idType);
 		}
 		
-		return parseModel(id, type);
+		return parseModel(id);
 	}
 	
-	@SuppressWarnings("unchecked")
-	private static <T, S> T [] getEntities (String name, Class <T> type, Class <S> idType, IDKind idKind, HttpServletRequest request) {
-		S [] ids;
+	/**
+	 * @param request
+	 * @return an {@link Array} of {@link Model}s retrieved
+	 * from the request
+	 */
+	private Model <?> [] getEntities (HttpServletRequest request) {
+		Object [] ids;
 		switch (idKind) {
 		case PRIMITIVE:
 			ids = getParameters(name, idType, request);
@@ -369,19 +516,47 @@ public class Retriever {
 			return null;
 		}
 		
-		T [] entities = (T []) Array.newInstance(type, ids.length);
+		Model <?> [] entities = new Model <?> [ids.length];
 		for (int i = 0; i < ids.length; i++) {
-			entities[i] = parseModel(ids[i], type);
+			entities[i] = parseModel(ids[i]);
 		}
 		
 		return entities;
 	}
 	
+	/**
+	 * @param id
+	 * @return the {@link Model}
+	 * that has the passed <code>id</code>
+	 */
+	private Model <?> parseModel (Object id) {
+		if (id == null) {
+			return null;
+		}
+		
+		return instance.clazz.find(id);
+	}
+	
+	/**
+	 * @param <T>
+	 * @param name
+	 * @param type
+	 * @param request
+	 * @return the {@link Enum} from the request
+	 */
 	private static <T> T getEnum (String name, Class <T> type, HttpServletRequest request) {
 		String constant = getParameter(name, String.class, request);
 		return parseEnum(constant, type);
 	}
 	
+	/**
+	 * @param <T>
+	 * @param name
+	 * @param type
+	 * @param request
+	 * @return an {@link Array} of {@link Enum}s from
+	 * the request
+	 */
 	@SuppressWarnings("unchecked")
 	private static <T> T [] getEnums (String name, Class <T> type, HttpServletRequest request) {
 		String [] constants = getParameters(name, String.class, request);
@@ -396,6 +571,38 @@ public class Retriever {
 		return enums;
 	}
 	
+	/**
+	 * @param <T>
+	 * @param <S>
+	 * @param constant
+	 * @param type
+	 * 
+	 * @return the {@link Enum} constant of the
+	 * {@link Enum} class <code>type</code> that has the same name
+	 * as the passed <code>constant</code>, or <code>null</code>
+	 * if there is none matching
+	 */
+	@SuppressWarnings("unchecked")
+	protected static <T, S extends Enum <S>> T parseEnum (String constant, Class <T> type) {
+		if (constant == null) {
+			return null;
+		}
+		
+		try {
+			return (T) Enum.valueOf((Class <S>) type, constant);
+		} catch (IllegalArgumentException e) {
+			return null;
+		} catch (Exception e) {
+			throw new UnhandledJeextException(e);
+		}
+	}
+	
+	/**
+	 * @param name
+	 * @param request
+	 * 
+	 * @return {@link FileType} from the requests part
+	 */
 	private static FileType getFile (String name, HttpServletRequest request) {
 		if (!isMultipart(request)) {
 			return null;
@@ -417,6 +624,13 @@ public class Retriever {
 		}
 	}
 	
+	/**
+	 * @param name
+	 * @param request
+	 * 
+	 * @return an {@link Array} of {@link FileType}s
+	 * from the requests parts
+	 */
 	private static FileType [] getFiles (String name, HttpServletRequest request) {
 		if (!isMultipart(request)) {
 			return null;
@@ -447,16 +661,35 @@ public class Retriever {
 	
 	/**
 	 * In case i don't use {@link ServletFileUpload} sometime in the future
+	 * 
+	 * @param request
+	 * @return whether the request is a multipart request or not
 	 */
 	private static boolean isMultipart (HttpServletRequest request) {
 		return ServletFileUpload.isMultipartContent(request);
 	}
 	
+	/**
+	 * @param <T>
+	 * @param name
+	 * @param type
+	 * @param request
+	 * 
+	 * @return the primitive parameter from the request
+	 */
 	private static <T> T getParameter (String name, Class <T> type, HttpServletRequest request) {
 		String parameter = request.getParameter(name);
 		return parse(parameter, type);
 	}
 
+	/**
+	 * @param <T>
+	 * @param name
+	 * @param type
+	 * @param request
+	 * 
+	 * @return an {@link Array} of primitive parameters from the request
+	 */
 	@SuppressWarnings("unchecked")
 	private static <T> T [] getParameters (String name, Class <T> type, HttpServletRequest request) {
 		String [] parameters = request.getParameterValues(name);
@@ -472,29 +705,14 @@ public class Retriever {
 		return parsedParameters;
 	}
 	
-	private static <T> T parseModel (Object id, Class <T> type) {
-		if (id == null) {
-			return null;
-		}
-		
-		return Manager.find(type, id);
-	}
-	
-	@SuppressWarnings("unchecked")
-	protected static <T, S extends Enum <S>> T parseEnum (String constant, Class <T> type) {
-		if (constant == null) {
-			return null;
-		}
-		
-		try {
-			return (T) Enum.valueOf((Class <S>) type, constant);
-		} catch (IllegalArgumentException e) {
-			return null;
-		} catch (Exception e) {
-			throw new UnhandledJeextException(e);
-		}
-	}
-	
+	/**
+	 * @param <T>
+	 * @param s
+	 * @param type
+	 * 
+	 * @return the {@link String} <code>s</code> parsed
+	 * to the specified type <code>type</code>
+	 */
 	protected static <T> T parse (String s, Class <T> type) {
 		try {
 			return Parser.parse(s, type);
@@ -503,28 +721,72 @@ public class Retriever {
 		}
 	}
 	
+	/**
+	 * An {@link Enum} to specify the
+	 * multiplicity in which this parameter
+	 * is expected
+	 */
 	protected static enum Multiplicity {
+		/**
+		 * Simple parameter
+		 */
 		SINGLE,
+		/**
+		 * Multiple parameters casted to an {@link Array}
+		 */
 		ARRAY,
+		/**
+		 * Multiple parameters casted to a {@link List}
+		 */
 		LIST;
 	}
 	
+	/**
+	 * An {@link Enum} to determine the
+	 * kind of the parameter and thus
+	 * know how to retrieve it properly
+	 */
 	protected static enum Kind {
+		/**
+		 * Primitive means anything
+		 * other than the rest of the constants
+		 * here, and not the primitives themselves (int, float ..)
+		 */
 		PRIMITIVE,
+		/**
+		 * {@link FileType} type of parameters
+		 */
 		FILE,
+		/**
+		 * {@link Enum} type of parameters
+		 */
 		ENUM,
+		/**
+		 * {@link Model} type of parameters
+		 */
 		MODEL;
 	}
 	
+	/**
+	 * For {@link Kind#MODEL} parameters only,
+	 * to specify the type of the {@link Model}s id
+	 */
 	protected static enum IDKind {
+		/**
+		 * Normal types of ID
+		 */
 		PRIMITIVE,
+		/**
+		 * {@link Enum} type of ID
+		 */
 		ENUM;
 	}
 
 	@Override
 	public String toString() {
 		return "Retriever [name=" + name + ", type=" + type + ", multiplicity=" + multiplicity + ", kind=" + kind
-				+ ", idType=" + idType + ", idKind=" + idKind + "]";
+				+ ", idType=" + idType + ", idKind=" + idKind + ", constructor=" + constructor + ", instance="
+				+ instance + "]";
 	}
-	
+
 }
