@@ -152,7 +152,8 @@ public class Filter extends HttpFilter {
 					chain.doFilter(request, response);
 					return;
 				}
-				
+
+				// TODO check for classcastexception
 				User user = (User) session.getAttribute("user");
 				
 				Mapping mapping;

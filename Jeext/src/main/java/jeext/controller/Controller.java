@@ -127,7 +127,7 @@ public final class Controller extends HttpServlet {
 //   			System.out.println("-> " +controller); // To debug if needed
 //   		}
 
-//   		System.out.println("Loaded servlets: " +servlets.size());
+//   		System.out.println("Loaded servlets mappings: " +servlets.size());
 //   		for (var entry : servlets.entrySet()) {
 //   			System.out.println("-> " +entry); // To debug if needed
 //   		}

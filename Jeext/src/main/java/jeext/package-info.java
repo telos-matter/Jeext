@@ -8,5 +8,7 @@
  * MENTION relatively easy to update to newer version, just swap old pacakge for new one lol
  * TODO do actually add send param back as attr, case name changed or whatever, + in composed so much work lol
  * TODO maybe add personalized validator, somehow?
+ * 
+ * @version 2 pre-release 21
  */
 package jeext;

@@ -2,11 +2,10 @@
 -- Don't forget to name the references xxx_id, gender_id for example. But also dont forget that in the model it should just be named xxx.
 -- VSCode may show some names highlighted but they work just fine with mySQL.
 -- /!\ Don't use `foo` in names to overcome the limitation tho, you will get Exceptions in the JPA.. 
--- Weirdly, you can't use comments like this "--foo", only "-- foo"
 
 -- DROP
-DROP TABLE permission;
-DROP TABLE user;
+DROP TABLE IF EXISTS permission;
+DROP TABLE IF EXISTS user;
 
 -- CREATE
 CREATE TABLE user ( 
