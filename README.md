@@ -1,4 +1,7 @@
 <h1>Jeext</h1>
+
+![Version 2 in progress](https://badgen.net/badge/STATUS/V2%20in%20progress/orange)
+
 A <b>JEE</b> e<b>xt</b>ension
 <br><br>
 A, Spring inspired, JEE framework
