@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jeext.controller.Controller;
 import jeext.controller.core.Access;
 import jeext.controller.core.HTTPMethod;
+import jeext.controller.core.IdentifiableUser;
 import jeext.controller.core.Path;
 import jeext.controller.core.annotations.WebController;
 import jeext.controller.core.annotations.WebMapping;
@@ -156,12 +157,12 @@ public class Mapping {
 	}
 	
 	/**
-	 * @return	whether or not the {@link User}
+	 * @return	whether or not the {@link IdentifiableUser}
 	 * can access this {@link Mapping} depending
 	 * on the {@link Access} value specified for
 	 * this {@link Mapping}
 	 */
-	public boolean canAccess (User user) {
+	public boolean canAccess (IdentifiableUser user) {
 		switch (access) {
 		
 		case ALL: return true;

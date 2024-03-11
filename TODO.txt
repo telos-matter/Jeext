@@ -1,0 +1,56 @@
+Semething not dependent on the permission class in models, just like how u did identifieable user
+
+
+
+Byte arrays can be used as files
+
+
+
+Add a canAccess mapping that checks if u can access a url with specified method (also maybe option to turn that off)
+
+
+CHANGE WRITESIMPLETEXT to not have html
+And then another one with html
+
+
+
+
+
+
+
+	} catch (InvocationTargetException e) {
+			Throwable cause = e.getCause();
+			if (cause != null && cause.getClass().equals(InvalidParameter.class)) {
+				response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+			} else {
+				throw new UnhandledException(e);
+			}
+		}
+When invoking
+
+
+
+Possibility to make multipart config on a controller
+
+
+
+
+
+
+Did it totally slip my mind when I was working on Jeext that forms do send the data even if its empty?
+Well Ama add a makeshift solution, copy it when im done something like nullIfEmpty
+
+
+
+
+I made a BIIIIIG change, I swapped consume with validate in param
+
+
+Added nullifyEmpty to filetypes
+
+
+Simple json handler, or maybe googles one?
+
+
+
+Count stringsCI in manager and model

@@ -7,10 +7,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jeext.controller.core.Access;
 import jeext.controller.core.HTTPMethod;
+import jeext.controller.core.IdentifiableUser;
 import jeext.controller.core.annotations.WebMapping;
 import jeext.controller.core.mapping.Mapping;
 import jeext.controller.core.param.validators.Validator;
-import models.User;
+import models.User; // TODO remove
 import models.permission.Permission;
 
 import java.io.IOException;
@@ -129,7 +130,7 @@ public class Filter extends HttpFilter {
 	 * @see Controller
 	 * @see Controller#invokeMapping(Map, HttpServletRequest, HttpServletResponse)
 	 */
-	
+	// TODO update doc IdentifiableUser
 	@Override
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain) throws IOException, ServletException {
 		HttpServletRequest request = (HttpServletRequest) servletRequest;
@@ -154,7 +155,7 @@ public class Filter extends HttpFilter {
 				}
 
 				// TODO check for classcastexception
-				User user = (User) session.getAttribute("user");
+				IdentifiableUser user = (IdentifiableUser) session.getAttribute("user");
 				
 				Mapping mapping;
 				HTTPMethod method = HTTPMethod.valueOf(request.getMethod());
@@ -182,16 +183,11 @@ public class Filter extends HttpFilter {
 						response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 						return;
 						
-					} else {
-						if (!mapping.hasPermission(user.getPermissions())) {
-							response.sendError(HttpServletResponse.SC_FORBIDDEN);
-							return;
-						}
-						
+					} else if (user.getPermissions() == null || !mapping.hasPermission(user.getPermissions())) {
+						response.sendError(HttpServletResponse.SC_FORBIDDEN);
+						return;
 					}
 				}
-				
-				System.out.println("\n\n\n\nFilter");
 				
 				request.setAttribute("mapping", mapping);
 				request.getRequestDispatcher(Controller.PATH).forward(request, response);

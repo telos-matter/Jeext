@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -153,9 +154,9 @@ public final class Controller extends HttpServlet {
     	File root = new File (root_path);
     	File [] content = root
     			.listFiles(
-    					(File file) -> {return !(file.isDirectory() && file.getName().equals("jeext"));}
+    					(File file) -> {return !(file.isDirectory() && file.getName().equals("jeext"));} // FIXME this gets changed if you use the move thing with refactoring, and wouldn't work if jeext isnt in root
     			);
-    	
+// the fix: && !Controller.class.equals(clazz)) { in laodClass    	
     	loadFromPackage("", content);
     }
     

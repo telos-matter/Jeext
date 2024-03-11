@@ -367,7 +367,7 @@ public class Param {
 				
 			} else if (LocalDate.class.equals(retriever.type)) {
 
-				checkAnnotations(webController, method, parameter, ALL_VALIDATORS, Before.class, After.class, Younger.class, Older.class);
+				checkAnnotations(webController, method, parameter, ALL_VALIDATORS, Required.class, Before.class, After.class, Younger.class, Older.class);
 				
 				Before before = parameter.getAnnotation(Before.class);
 				if (before != null) {

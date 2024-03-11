@@ -43,8 +43,9 @@ public enum Access {
 	 */
 	ALL,
 	/**
-	 * Only logged in {@link User}s can access this web page or resource.
-	 * Know that a {@link User} is considered logged in only if his {@link User}
+	 * Only logged in {@link IdentifiableUser}s can access this web page or resource.
+	 * Know that a {@link IdentifiableUser} is considered logged in only if
+	 * his {@link IdentifiableUser}
 	 * {@link Object} is an attribute in the {@link HttpSession} under the name
 	 * "user"
 	 */
