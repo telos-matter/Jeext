@@ -6,7 +6,7 @@ A, Spring inspired, JEE framework / extension.
 
 <hr>
 
-Unfortunately, this project has been abandoned. **However**, all the features I had in mind initially when I started working on it has been implemented fully, and even some more.
+Unfortunately, this project has been abandoned. **However**, all the features I had in mind initially when I started working on it have been implemented fully, and even some more.
 
 
 This JEE extension provides facilities to make developing JEE webapps **a lot** easier (with parameters validation, and objects auto-filling, ect...). Similar to what Spring provides. Although worth noting that when I started working on this project I haven't used Spring much / not at all really, yet the features that I've implemented turned out to be very similar to what Spring has.
