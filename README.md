@@ -1,11 +1,9 @@
-# Jeext &nbsp; ![Version 2 in progress](https://badgen.net/badge/DEVELOPMENT%20STATUS/V2%20in%20progress/orange)
+# Jeext &nbsp; ![Abandoned](https://badgen.net/badge/DEVELOPMENT%20STATUS/abandoned/red)
 
-A <b>JEE</b> e<b>xt</b>ension
-<br><br>
-A, Spring inspired, JEE framework
-<br>
-<a href="Jeext/src/main/java/controllers/Index.java">example</a>
+<b>JEE</b> e<b>xt</b>ension
 
-Currently in testing-mode
+A, Spring inspired, JEE framework / extension.
 
-Documentation is on the way
+<hr>
+
+
